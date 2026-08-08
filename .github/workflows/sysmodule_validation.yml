@@ -2,27 +2,62 @@ name: Validate Sysmodule
 on:
   push:
     paths:
-      - 'switch_sysmodule/**'
+      - 'firmware/**'
       - '.github/workflows/sysmodule_validation.yml'
   pull_request:
     paths:
-      - 'switch_sysmodule/**'
+      - 'firmware/**'
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      
+
       - name: Validate JSON Structure and Syscalls
-        run: python3 scripts/validate_sysmodule.py switch_sysmodule/main.json
-        
+        run: python3 scripts/validate_sysmodule.py firmware/core/main.json
+
       - name: Verify Sysmodule Compilation
         uses: docker://devkitpro/devkita64:latest
         with:
-          args: /bin/bash -c "export PATH=$PATH:/opt/devkitpro/devkitA64/bin:/opt/devkitpro/tools/bin && cd switch_sysmodule && make"
+          args: /bin/bash -c "export PATH=$PATH:/opt/devkitpro/devkitA64/bin:/opt/devkitpro/tools/bin && cd firmware/core && make"
 
       - name: Verify App Compilation
         uses: docker://devkitpro/devkita64:latest
         with:
-          args: /bin/bash -c "export PATH=$PATH:/opt/devkitpro/devkitA64/bin:/opt/devkitpro/tools/bin && cd switch_app && make"
+          args: /bin/bash -c "export PATH=$PATH:/opt/devkitpro/devkitA64/bin:/opt/devkitpro/tools/bin && cd firmware/companion-app && make && make launcher"
+
+      - name: Verify Orchestrator Compilation
+        uses: docker://devkitpro/devkita64:latest
+        with:
+          args: /bin/bash -c "export PATH=$PATH:/opt/devkitpro/devkitA64/bin:/opt/devkitpro/tools/bin && cd firmware/orchestrator && make"
+
+  # firmware/common/ is the host-testable subset of the C++ code (see AGENTS.md
+  # Rule #4) - it doesn't need the devkitA64 cross toolchain, just a normal host
+  # compiler, so this runs directly on the runner instead of in the devkitA64
+  # container the job above uses.
+  host-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install clang-tidy and cppcheck
+        run: sudo apt-get update && sudo apt-get install -y clang-tidy cppcheck
+
+      - name: Run host test suite
+        run: make -C firmware/common/tests
+
+      - name: Run host test suite under ASan/UBSan
+        run: make -C firmware/common/tests asan
+
+      - name: cppcheck
+        run: |
+          cppcheck --enable=warning,performance,portability --error-exitcode=1 \
+            --suppress=missingIncludeSystem \
+            -I firmware/common/include \
+            firmware/common/*.cpp
+
+      - name: clang-tidy
+        run: |
+          clang-tidy firmware/common/*.cpp -- \
+            -std=c++17 -DUNIT_TEST -Ifirmware/common/include -Ifirmware/common/tests

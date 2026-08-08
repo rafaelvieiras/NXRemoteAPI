@@ -5,7 +5,7 @@
         "data": {
           "flow_type": "Connection Type"
         },
-        "description": "How do you want to add your Nintendo Switch by FaserF?"
+        "description": "How do you want to add your Nintendo Switch (NXRemoteAPI)?"
       },
       "discovery": {
         "title": "Search for Nintendo Switch",

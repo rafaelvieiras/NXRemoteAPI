@@ -46,7 +46,7 @@ def get_service_version(repo_name):
             print(f"Error fetching Valetudo version: {e}")
             return "2026.6.0"
 
-    elif repo_name == "ha-NintendoSwitchCFW":
+    elif repo_name == "NXRemoteAPI":
         try:
             req = urllib.request.Request(
                 "https://api.github.com/repos/Atmosphere-NX/Atmosphere/releases/latest",
@@ -128,7 +128,7 @@ def clean_and_update_template(file_path, integration_version, ha_version, repo_n
             (field_id == "openwrt_version" and repo_name == "ha-openwrt")
             or (field_id == "valetudo_version" and repo_name == "hass-valetudo")
             or (
-                field_id == "atmosphere_version" and repo_name == "ha-NintendoSwitchCFW"
+                field_id == "atmosphere_version" and repo_name == "NXRemoteAPI"
             )
         ):
 

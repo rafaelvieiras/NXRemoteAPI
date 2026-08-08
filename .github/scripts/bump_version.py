@@ -123,8 +123,8 @@ def update_files(new_version):
         with open(const_path, "w") as f:
             f.write(content)
 
-    # Update switch_sysmodule/homeassistant_sysmodule.json
-    sys_json_path = "switch_sysmodule/homeassistant_sysmodule.json"
+    # Update firmware/core/main.json
+    sys_json_path = "firmware/core/main.json"
     if os.path.exists(sys_json_path):
         with open(sys_json_path) as f:
             sys_json = json.load(f)
@@ -133,8 +133,8 @@ def update_files(new_version):
             json.dump(sys_json, f, indent=4)
             f.write("\n")
 
-    # Update switch_sysmodule Makefile
-    sys_makefile = "switch_sysmodule/Makefile"
+    # Update firmware/core Makefile
+    sys_makefile = "firmware/core/Makefile"
     if os.path.exists(sys_makefile):
         with open(sys_makefile) as f:
             content = f.read()
@@ -147,8 +147,8 @@ def update_files(new_version):
         with open(sys_makefile, "w") as f:
             f.write(content)
 
-    # Update switch_app Makefile
-    app_makefile_path = "switch_app/Makefile"
+    # Update firmware/companion-app Makefile
+    app_makefile_path = "firmware/companion-app/Makefile"
     if os.path.exists(app_makefile_path):
         with open(app_makefile_path) as f:
             content = f.read()

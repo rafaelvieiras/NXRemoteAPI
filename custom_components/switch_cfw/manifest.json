@@ -5,7 +5,7 @@
     "network"
   ],
   "codeowners": [
-    "@FaserF"
+    "@rafaelvieiras"
   ],
   "config_flow": true,
   "dhcp": [
@@ -13,10 +13,10 @@
       "hostname": "switch-*"
     }
   ],
-  "documentation": "https://github.com/FaserF/ha-NintendoSwitchCFW",
+  "documentation": "https://github.com/rafaelvieiras/NXRemoteAPI",
   "integration_type": "hub",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/FaserF/ha-NintendoSwitchCFW/issues",
+  "issue_tracker": "https://github.com/rafaelvieiras/NXRemoteAPI/issues",
   "loggers": [
     "switch_cfw"
   ],

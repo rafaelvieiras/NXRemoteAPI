@@ -3,7 +3,7 @@ description: Suggest an idea for the Nintendo Switch CFW integration
 title: '[Feature]: '
 labels: ['enhancement', 'triage']
 assignees:
-  - FaserF
+  - rafaelvieiras
 body:
   - type: markdown
     attributes:
@@ -11,8 +11,8 @@ body:
         Thanks for taking the time to fill out this feature request!
 
         Before submitting, please check:
-        - 📋 [Existing feature requests](https://github.com/FaserF/ha-NintendoSwitchCFW/issues?q=is%3Aissue+label%3Aenhancement)
-        - 📖 [Documentation](https://github.com/FaserF/ha-NintendoSwitchCFW/blob/master/README.md)
+        - 📋 [Existing feature requests](https://github.com/rafaelvieiras/NXRemoteAPI/issues?q=is%3Aissue+label%3Aenhancement)
+        - 📖 [Documentation](https://github.com/rafaelvieiras/NXRemoteAPI/blob/master/README.md)
 
   - type: textarea
     id: description

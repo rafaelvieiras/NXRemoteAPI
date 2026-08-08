@@ -3,7 +3,7 @@ description: Create a report to help us improve the Nintendo Switch CFW integrat
 title: '[Bug]: '
 labels: ['bug', 'triage']
 assignees:
-  - FaserF
+  - rafaelvieiras
 body:
   - type: markdown
     attributes:
@@ -11,8 +11,8 @@ body:
         Thanks for taking the time to fill out this bug report!
 
         Before submitting, please check:
-        - 📋 [Existing issues](https://github.com/FaserF/ha-NintendoSwitchCFW/issues)
-        - 📖 [Documentation](https://github.com/FaserF/ha-NintendoSwitchCFW/blob/master/README.md)
+        - 📋 [Existing issues](https://github.com/rafaelvieiras/NXRemoteAPI/issues)
+        - 📖 [Documentation](https://github.com/rafaelvieiras/NXRemoteAPI/blob/master/README.md)
         - 🔧 [Integration page](https://my.home-assistant.io/redirect/integration/?domain=switch_cfw) in Home Assistant
         - For connection/sys-botbase issues, use the **Connection Bug Report** template instead!
 

@@ -60,8 +60,8 @@ def update_files(new_version):
             f.write(content)
         print("- Updated const.py")
 
-    # 4. switch_sysmodule/main.cpp
-    sys_main = "switch_sysmodule/main.cpp"
+    # 4. firmware/core/main.cpp
+    sys_main = "firmware/core/main.cpp"
     if os.path.exists(sys_main):
         with open(sys_main, "r", encoding="utf-8") as f:
             content = f.read()
@@ -70,10 +70,10 @@ def update_files(new_version):
         )
         with open(sys_main, "w", encoding="utf-8", newline="\n") as f:
             f.write(content)
-        print("- Updated switch_sysmodule/main.cpp")
+        print("- Updated firmware/core/main.cpp")
 
-    # 5. switch_app/main.cpp
-    app_main = "switch_app/main.cpp"
+    # 5. firmware/companion-app/main.cpp
+    app_main = "firmware/companion-app/main.cpp"
     if os.path.exists(app_main):
         with open(app_main, "r", encoding="utf-8") as f:
             content = f.read()
@@ -82,7 +82,7 @@ def update_files(new_version):
         )
         with open(app_main, "w", encoding="utf-8", newline="\n") as f:
             f.write(content)
-        print("- Updated switch_app/main.cpp")
+        print("- Updated firmware/companion-app/main.cpp")
 
     # 6. build_switch.ps1
     ps1_path = "build_switch.ps1"

@@ -11,7 +11,7 @@ STARTUP_MESSAGE = f"""
 Version: 0.2.4-dev
 This is a custom integration!
 If you have any issues with this you need to open an issue here:
-https://github.com/FaserF/ha-NintendoSwitchCFW
+https://github.com/rafaelvieiras/NXRemoteAPI
 -------------------------------------------------------------------
 """
 
@@ -53,4 +53,4 @@ ATTR_APP_VERSION = "app_version"
 MIN_APP_VERSION = "0.2.4-dev"
 
 FIRMWARE_UPDATE_URL = "https://api.github.com/repos/{repository}/releases/latest"
-GITHUB_RELEASE_URL = "https://github.com/FaserF/ha-NintendoSwitchCFW/releases/latest"
+GITHUB_RELEASE_URL = "https://github.com/rafaelvieiras/NXRemoteAPI/releases/latest"

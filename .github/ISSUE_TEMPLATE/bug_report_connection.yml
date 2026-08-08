@@ -3,7 +3,7 @@ description: Report a connection issue or sys-botbase problem with the Nintendo 
 title: '[Bug][Connection]: '
 labels: ['bug', 'triage', 'connection']
 assignees:
-  - FaserF
+  - rafaelvieiras
 body:
   - type: markdown
     attributes:
@@ -11,7 +11,7 @@ body:
         Use this template for issues related to connecting to your Nintendo Switch via **sys-botbase** or network connectivity problems.
 
         Before submitting, please check:
-        - 📋 [Existing issues](https://github.com/FaserF/ha-NintendoSwitchCFW/issues)
+        - 📋 [Existing issues](https://github.com/rafaelvieiras/NXRemoteAPI/issues)
         - 📖 [sys-botbase documentation](https://github.com/olliz0r/sys-botbase)
 
   - type: input

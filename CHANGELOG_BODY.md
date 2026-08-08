@@ -4,5 +4,5 @@
 ## Changelog
 
 ### 🐛 Bug Fixes
-- fix release workflow ([3e47e5f](https://github.com/FaserF/ha-NintendoSwitchCFW/commit/3e47e5f30a0ff4efda273a414db2555a34315ac6))
+- fix release workflow ([3e47e5f](https://github.com/rafaelvieiras/NXRemoteAPI/commit/3e47e5f30a0ff4efda273a414db2555a34315ac6))
 

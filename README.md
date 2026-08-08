@@ -1,16 +1,20 @@
 <p align="center">
-  <img src="logo.png" alt="Home Assistant Switch Logo" width="150">
+  <img src="logo.png" alt="NXRemoteAPI Logo" width="150">
 </p>
 
-# Nintendo Switch CFW (for Home Assistant)
+# NXRemoteAPI — Nintendo Switch CFW Remote API
 
-[![GitHub Release](https://img.shields.io/github/release/FaserF/ha-NintendoSwitchCFW.svg?style=flat-square)](https://github.com/FaserF/ha-NintendoSwitchCFW/releases)
-[![Downloads (Current release)](https://img.shields.io/github/downloads/FaserF/ha-NintentdoSwitchCFW/latest/switch_cfw.zip?label=Downloads%20(Current%20release)&style=flat-square)](https://github.com/FaserF/ha-NintentdoSwitchCFW/releases)
-[![License](https://img.shields.io/github/license/FaserF/ha-NintendoSwitchCFW.svg?style=flat-square)](LICENSE)
+[![GitHub Release](https://img.shields.io/github/release/rafaelvieiras/NXRemoteAPI.svg?style=flat-square)](https://github.com/rafaelvieiras/NXRemoteAPI/releases)
+[![Downloads (Current release)](https://img.shields.io/github/downloads/rafaelvieiras/NXRemoteAPI/latest/switch_cfw.zip?label=Downloads%20(Current%20release)&style=flat-square)](https://github.com/rafaelvieiras/NXRemoteAPI/releases)
+[![License](https://img.shields.io/github/license/rafaelvieiras/NXRemoteAPI.svg?style=flat-square)](LICENSE)
 [![hacs](https://img.shields.io/badge/HACS-custom-orange.svg?style=flat-square)](https://hacs.xyz)
-[![Lint](https://github.com/FaserF/ha-NintendoSwitchCFW/actions/workflows/lint.yml/badge.svg)](https://github.com/FaserF/ha-NintendoSwitchCFW/actions/workflows/lint.yml)
+[![CI](https://github.com/rafaelvieiras/NXRemoteAPI/actions/workflows/ci-orchestrator.yml/badge.svg)](https://github.com/rafaelvieiras/NXRemoteAPI/actions/workflows/ci-orchestrator.yml)
 
-A modern, high-quality Home Assistant integration for Nintendo Switch consoles running Atmosphere Custom Firmware. Monitor your console's health, track current games, and execute system commands directly from your dashboard.
+A low-memory-footprint remote API and telemetry sysmodule for Nintendo Switch consoles
+running Atmosphère Custom Firmware. It exposes console health, current game, storage,
+and remote control (buttons, launch, sleep/reboot/shutdown) over a small local HTTP
+API, designed to be consumed by whatever automates or logs your life - Home Assistant
+today, a Prometheus/Grafana bridge and a lightweight client SDK on the roadmap.
 
 ## 🧭 Quick Links
 
@@ -40,7 +44,7 @@ A modern, high-quality Home Assistant integration for Nintendo Switch consoles r
   - **Shutdown**: Button to safely power off the console.
 - **Update Management**:
   - **System Update**: Notifies you when a new firmware version is available.
-  - **Homebrew App Update**: Monitor and trigger automatic updates for the `ha-switch-sysmodule` and companion app directly from HA.
+  - **Homebrew App Update**: Monitor and trigger automatic updates for the sysmodule and companion app directly from HA.
   - **Daybreak Integration**: Trigger firmware updates directly via Daybreak (experimental).
 - **Modern Standards**:
   - Full support for **Auto-discovery** via Zeroconf/mDNS.
@@ -49,20 +53,19 @@ A modern, high-quality Home Assistant integration for Nintendo Switch consoles r
   - **Localization**: English and German translations included.
   - **Energy Efficient**: Optimized polling and dynamic interval during sleep.
 
-## ❤️ Support This Project
+## 🙏 Credits & Project History
 
-> I maintain this integration in my **free time alongside my regular job** — bug hunting, new features, testing on real devices. Test hardware costs money, and every donation helps me stay independent and dedicate more time to open-source work.
->
-> **This project is and will always remain 100% free.** There are no "Premium Upgrades", paid features, or subscriptions. Every feature is available to everyone.
->
-> Donations are completely voluntary — but the more support I receive, the less I depend on other income sources and the more time I can realistically invest into these projects. 💪
+This project started as a fork of [FaserF/ha-NintendoSwitchCFW](https://github.com/FaserF/ha-NintendoSwitchCFW)
+— all credit for the original Home Assistant integration, sysmodule, and companion app
+goes to FaserF.
 
-<div align="center">
-
-[![GitHub Sponsors](https://img.shields.io/badge/Sponsor%20on-GitHub-%23EA4AAA?style=for-the-badge&logo=github-sponsors&logoColor=white)](https://github.com/sponsors/FaserF)&nbsp;&nbsp;
-[![PayPal](https://img.shields.io/badge/Donate%20via-PayPal-%2300457C?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/FaserF)
-
-</div>
+NXRemoteAPI is now a **permanent, definitive fork**, no longer tracked against upstream.
+This isn't a comment on the original project — it's that the scope of changes needed
+(a polyglot monorepo restructure, splitting the sysmodule into an orchestrator+core pair,
+and generalizing the HTTP API into a low-memory telemetry/automation surface meant to
+serve clients well beyond Home Assistant) made merging back upstream impractical. The
+Home Assistant integration in this repo continues to work as one client of that API,
+alongside whatever else gets built against it.
 
 ### Firmware Updates
 The integration checks for the latest firmware versions. By default, it uses [THZoria/NX_Firmware](https://github.com/THZoria/NX_Firmware).
@@ -72,8 +75,6 @@ The integration checks for the latest firmware versions. By default, it uses [TH
 
 > [!WARNING]
 > Support is only provided for the default repository. Custom repositories must follow a similar release structure (tag names as versions, `.zip` or `.nro` assets) to be compatible.
-
-## 🤝 Sponsoring
 
 ## 🎮 Supported Hardware
 
@@ -93,19 +94,19 @@ This integration is designed for Nintendo Switch consoles running Atmosphere Cus
 
 ### 1. Nintendo Switch (Sysmodule & Config App)
 
-To allow Home Assistant to communicate with your Switch, you must install the background sysmodule and the companion configuration app.
-1. Download the latest `main` (background service), `main.npdm` (boot descriptor), `boot2.flag` (autorun flag), and `homeassistant.nro` (config app) from the [Releases page](https://github.com/FaserF/ha-NintendoSwitchCFW/releases).
+To allow the API to talk to your Switch, you must install the background sysmodule and the companion configuration app.
+1. Download the latest `main` (background service), `main.npdm` (boot descriptor), `boot2.flag` (autorun flag), and `nxremoteapi.nro` (config app) from the [Releases page](https://github.com/rafaelvieiras/NXRemoteAPI/releases).
 2. On your SD card, create the folder: `/atmosphere/contents/010000000000CAFE/exefs/` and `/atmosphere/contents/010000000000CAFE/flags/`.
 3. Copy `main` and `main.npdm` to: `/atmosphere/contents/010000000000CAFE/exefs/`.
 4. Copy `boot2.flag` to: `/atmosphere/contents/010000000000CAFE/flags/`. (Without this file, the service will not start!)
-5. Copy `homeassistant.nro` to: `/switch/homeassistant.nro`.
+5. Copy `nxremoteapi.nro` to: `/switch/nxremoteapi.nro`.
 6. Reboot your Switch.
 
 ### ❓ Why both an .NSO and an .NRO?
 
-Users often ask why this integration requires two separate files. This is due to technical limitations of the Nintendo Switch Operating System (Horizon):
+Users often ask why this requires two separate files. This is due to technical limitations of the Nintendo Switch Operating System (Horizon):
 
-- **The NSO (Sysmodule)**: This is a background service. Standard Switch applications (.nro) are automatically suspended or closed when you launch a game. To allow Home Assistant to monitor your Switch **while you are playing**, a sysmodule is required as it runs in the background at all times.
+- **The NSO (Sysmodule)**: This is a background service. Standard Switch applications (.nro) are automatically suspended or closed when you launch a game. To keep monitoring your Switch **while you are playing**, a sysmodule is required as it runs in the background at all times.
 - **The NRO (Config App)**: Sysmodules cannot have a graphical user interface (GUI). The NRO provides a user-friendly way to see your console's IP address, generate secure API tokens, and check the status of the background service without having to manually edit configuration files on your SD card.
 
 Together, they provide both the persistent background connectivity and a simple setup experience.
@@ -116,17 +117,17 @@ Together, they provide both the persistent background connectivity and a simple 
 
 This integration is fully compatible with [HACS](https://hacs.xyz/).
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository?owner=FaserF&repository=ha-NintendoSwitchCFW&category=integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository?owner=rafaelvieiras&repository=NXRemoteAPI&category=integration)
 
 1. Open HACS in Home Assistant.
 2. Click on the three dots in the top right corner and select **Custom repositories**.
-3. Add `FaserF/ha-NintendoSwitchCFW` with category **Integration**.
+3. Add `rafaelvieiras/NXRemoteAPI` with category **Integration**.
 4. Search for "Nintendo Switch CFW" and install.
 5. Restart Home Assistant.
 
 ### Manual Installation
 
-1. Download the latest release from the [Releases page](https://github.com/FaserF/ha-NintendoSwitchCFW/releases).
+1. Download the latest release from the [Releases page](https://github.com/rafaelvieiras/NXRemoteAPI/releases).
 2. Extract the `custom_components/switch_cfw` folder into your Home Assistant's `custom_components` directory.
 3. Restart Home Assistant.
 
@@ -139,10 +140,10 @@ This integration is fully compatible with [HACS](https://hacs.xyz/).
 
 ## 🛡️ Security
 
-The connection between Home Assistant and the Switch is secured via a **secure API Token**.
+The connection to the Switch is secured via a **secure API Token**.
 
 - On first launch, the Switch app generates a unique random token.
-- This token is saved in `sdmc:/config/HomeAssistantSwitch/settings.json`.
+- This token is saved in `sdmc:/config/NXRemoteAPI/settings.json`.
 - The background service validates every request against this token.
 - You can regenerate the token at any time within the Switch app.
 
@@ -249,7 +250,7 @@ For developers or advanced users troubleshooting connection issues, the companio
 
 ### Enabling Developer Mode
 1. Connect your Nintendo Switch to your PC via a USB-C cable.
-2. Open the **HomeAssistant Switch** app on your console.
+2. Open the **NXRemoteAPI** app on your console.
 3. Press **MINUS (-)**.
 4. You will see a pink `[ DEV MODE ACTIVE (USB) ]` status on the screen and a message in the logs.
 
@@ -270,6 +271,10 @@ This project uses an automated release workflow.
 - Releases are tagged automatically.
 - The workflow builds the C++ components (NSP & NRO) using DevkitPro.
 - Packages the HA integration and generates a dynamic changelog.
+
+See [`docs/api.md`](docs/api.md) for the HTTP API contract shared by every client
+(Home Assistant included), and [`AGENTS.md`](AGENTS.md) for the repo's monorepo layout
+and contribution conventions.
 
 ## 📄 License
 

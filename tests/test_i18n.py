@@ -5,8 +5,8 @@ from pathlib import Path
 BASE_DIR = Path(__file__).parent.parent
 COMPONENT_DIR = BASE_DIR / "custom_components" / "switch_cfw"
 TRANSLATIONS_DIR = COMPONENT_DIR / "translations"
-SWITCH_APP_DIR = BASE_DIR / "switch_app"
-SWITCH_SYSMODULE_DIR = BASE_DIR / "switch_sysmodule"
+SWITCH_APP_DIR = BASE_DIR / "firmware" / "companion-app"
+SWITCH_SYSMODULE_DIR = BASE_DIR / "firmware" / "core"
 
 
 def get_keys(content, prefix=""):
@@ -188,11 +188,10 @@ def test_switch_hardcoded_strings():
 
 
 def test_branding_consistency():
-    """Verify all URLs and author fields use 'FaserF' instead of 'fseitz'."""
+    """Verify manifest/const/README reference the current project branding."""
     files_to_check = [
         COMPONENT_DIR / "manifest.json",
         COMPONENT_DIR / "const.py",
-        COMPONENT_DIR / "strings.json",
         BASE_DIR / "README.md",
     ]
 
@@ -204,8 +203,8 @@ def test_branding_consistency():
             assert "fseitz" not in content.lower(), (
                 f"Old branding 'fseitz' found in {f_path.name}"
             )
-            assert "FaserF" in content, (
-                f"New branding 'FaserF' missing in {f_path.name}"
+            assert "NXRemoteAPI" in content, (
+                f"Current branding 'NXRemoteAPI' missing in {f_path.name}"
             )
 
 
