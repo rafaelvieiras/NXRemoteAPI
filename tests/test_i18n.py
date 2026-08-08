@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.parent
-COMPONENT_DIR = BASE_DIR / "custom_components" / "switch_cfw"
+COMPONENT_DIR = BASE_DIR / "custom_components" / "nxremoteapi"
 TRANSLATIONS_DIR = COMPONENT_DIR / "translations"
 SWITCH_APP_DIR = BASE_DIR / "firmware" / "companion-app"
 SWITCH_SYSMODULE_DIR = BASE_DIR / "firmware" / "core"

@@ -53,7 +53,7 @@ firmware/
 ├── core/             the always-on HTTP API sysmodule — the actual product
 ├── orchestrator/     boot2 supervisor: launches core, health-checks it, self-restart
 └── companion-app/    .nro config/GUI app + Album-override launcher build
-custom_components/switch_cfw/   Home Assistant integration (one client of core's API)
+custom_components/nxremoteapi/   Home Assistant integration (one client of core's API)
 docs/                            api.md (HTTP contract) + architecture.md (why 3 binaries)
 CHANGELOG.md                     every release, in Keep a Changelog format
 ```
@@ -94,7 +94,7 @@ this repo already includes an integration for it:
 
 1. In HACS, open **Custom repositories** and add `rafaelvieiras/NXRemoteAPI` as an
    **Integration**.
-2. Install "Nintendo Switch CFW", restart Home Assistant.
+2. Install "NXRemoteAPI", restart Home Assistant.
 3. It should auto-discover the console on the same network; otherwise add it
    manually with the console's IP and API token.
 
@@ -110,7 +110,7 @@ stored in `sdmc:/config/NXRemoteAPI/settings.json`, required on every route exce
 ## Roadmap
 
 Not built yet, but the repo layout already leaves room for these as siblings of
-`custom_components/switch_cfw`:
+`custom_components/nxremoteapi`:
 
 - A Go-based Prometheus exporter (`clients/prometheus-bridge`), polling the same
   JSON `core` already serves, for anyone who'd rather graph this in Grafana than in

@@ -3,7 +3,7 @@
 ## 🧬 Project DNA
 **Repository:** `ha-NintentdoSwitchCFW`
 **Type:** Home Assistant Custom Integration
-**Domain:** `switch_cfw`
+**Domain:** `nxremoteapi`
 **Description:** A modern, high-quality Home Assistant integration for Nintendo Switch consoles running Atmosphere Custom Firmware. Monitor your console's health, track current games, and execute system commands directly from your dashboard.
 
 ## 🛠 Tech Stack & Standards
@@ -29,7 +29,7 @@
 - **Validation:** Always verify imports and type safety. If proposing a fix for a state error, trace the variable back to the API response.
 
 ### 🚀 Google Antigravity
-- **Codebase Navigation:** Begin by analyzing `custom_components/switch_cfw/`. Search for established patterns in `api.py` or `coordinator.py` before modifying entities.
+- **Codebase Navigation:** Begin by analyzing `custom_components/nxremoteapi/`. Search for established patterns in `api.py` or `coordinator.py` before modifying entities.
 - **Testing Requirements:** When modifying logic, run or propose tests matching the existing `tests/` directory structure. 
 
 ## 🧪 Test Procedures

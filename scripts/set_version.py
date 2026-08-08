@@ -19,7 +19,7 @@ def update_files(new_version):
         print("- Updated pyproject.toml")
 
     # 2. manifest.json
-    manifest_path = "custom_components/switch_cfw/manifest.json"
+    manifest_path = "custom_components/nxremoteapi/manifest.json"
     if os.path.exists(manifest_path):
         with open(manifest_path, "r", encoding="utf-8") as f:
             manifest = json.load(f)
@@ -30,7 +30,7 @@ def update_files(new_version):
         print("- Updated manifest.json")
 
     # 3. const.py
-    const_path = "custom_components/switch_cfw/const.py"
+    const_path = "custom_components/nxremoteapi/const.py"
     if os.path.exists(const_path):
         with open(const_path, "r", encoding="utf-8") as f:
             content = f.read()

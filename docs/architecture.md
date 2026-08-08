@@ -81,7 +81,7 @@ in `SysmoduleConstants.h` and `request_launch_via_album()` in `firmware/core/mai
 `core`'s HTTP API (documented in [`api.md`](api.md)) is the only contract clients
 need. Today:
 
-- **`custom_components/switch_cfw`** — the Home Assistant integration. Polls
+- **`custom_components/nxremoteapi`** — the Home Assistant integration. Polls
   `/info` on a dynamic interval (backs off while the console appears asleep/
   unreachable, keeping entities "available" on cached data rather than flapping
   unavailable).
@@ -91,7 +91,7 @@ Planned, not yet built:
 - A Go-based Prometheus exporter, meant to run in Docker on a homelab/PC, polling
   the same JSON `core` already exposes and re-serving it in Prometheus's text
   format for Grafana. When it exists, it lives under `clients/` at the repo root —
-  `custom_components/switch_cfw` stays where it is (HACS requires the
+  `custom_components/nxremoteapi` stays where it is (HACS requires the
   `custom_components/<domain>` directory at the repository root for the
   "integration" category; it cannot be nested).
 - A simplified client SDK for third-party homebrew/off-console apps to consume the

@@ -84,7 +84,7 @@ def update_files(new_version):
             f.write(content)
 
     # Update manifest.json
-    manifest_path = "custom_components/switch_cfw/manifest.json"
+    manifest_path = "custom_components/nxremoteapi/manifest.json"
     if os.path.exists(manifest_path):
         with open(manifest_path) as f:
             manifest = json.load(f)
@@ -94,7 +94,7 @@ def update_files(new_version):
             f.write("\n")
 
     # Update const.py
-    const_path = "custom_components/switch_cfw/const.py"
+    const_path = "custom_components/nxremoteapi/const.py"
     if os.path.exists(const_path):
         with open(const_path) as f:
             content = f.read()

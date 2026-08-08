@@ -1,7 +1,7 @@
 [project]
 name = "NXRemoteAPI"
 version = "0.2.4-dev0"
-description = "Home Assistant integration for Nintendo Switch CFW"
+description = "Home Assistant integration for NXRemoteAPI"
 readme = "README.md"
 authors = [
     { name = "FaserF" },

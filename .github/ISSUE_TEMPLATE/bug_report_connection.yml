@@ -1,5 +1,5 @@
 name: Connection / sys-botbase Bug Report
-description: Report a connection issue or sys-botbase problem with the Nintendo Switch CFW integration
+description: Report a connection issue or sys-botbase problem with the NXRemoteAPI integration
 title: '[Bug][Connection]: '
 labels: ['bug', 'triage', 'connection']
 assignees:

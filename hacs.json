@@ -1,6 +1,6 @@
 {
-  "name": "Nintendo Switch CFW",
+  "name": "NXRemoteAPI",
   "render_readme": true,
   "zip_release": true,
-  "filename": "switch_cfw.zip"
+  "filename": "nxremoteapi.zip"
 }

@@ -25,7 +25,7 @@ logo.png
 *log*.txt
 
 # Project Icons (Dynamic)
-custom_components/switch_cfw/logo.png
+custom_components/nxremoteapi/logo.png
 
 # Python
 __pycache__/

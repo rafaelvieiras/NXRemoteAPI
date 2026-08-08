@@ -1,4 +1,4 @@
-"""Data coordinator for Nintendo Switch CFW."""
+"""Data coordinator for NXRemoteAPI."""
 
 from __future__ import annotations
 

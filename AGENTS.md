@@ -23,7 +23,7 @@ preferences never apply.
 | `firmware/core/` | "core" — the always-on HTTP API sysmodule (the actual product) | C++17, devkitA64/libnx |
 | `firmware/orchestrator/` | Minimal supervisor launched by Atmosphère's boot2; launches core, health-checks it, handles `/self_restart` so a bad core deploy doesn't need a physical reboot | C++17, devkitA64/libnx, `-lnx` only (no curl/mbedtls/z — keep it that way) |
 | `firmware/companion-app/` | `.nro` config/GUI app, plus a second build (`-DLAUNCHER_BUILD`) that briefly overrides the Album applet to launch patched titles correctly | C++17, devkitA64/libnx |
-| `custom_components/switch_cfw/` | Home Assistant integration (a client of core's HTTP API) | Python, `aiohttp` |
+| `custom_components/nxremoteapi/` | Home Assistant integration (a client of core's HTTP API) | Python, `aiohttp` |
 | `docs/` | `api.md` (HTTP contract) and `architecture.md` (why 3 binaries, boot flow, Album-override rationale) | Markdown |
 | `scripts/`, `.github/` | Release/version/CI automation spanning both languages | Python, YAML |
 
@@ -88,16 +88,17 @@ comments in the source before "fixing" them:
   `firmware/common/include/SysmoduleConstants.h`. Changing any of these means every
   existing install needs to be wiped and redone on the SD card for zero functional
   gain.
-- **The HA integration's `domain`/`CONF_*`/entity naming is frozen — currently
-  mid-rename to `nxremoteapi`** (see
+- **The HA integration's `domain`/`CONF_*`/entity naming is frozen at
+  `nxremoteapi`** (see
   [`docs/adr/0008-rename-ha-domain-to-nxremoteapi.md`](docs/adr/0008-rename-ha-domain-to-nxremoteapi.md),
-  tracked in [#31](https://github.com/rafaelvieiras/NXRemoteAPI/issues/31)).
+  implemented per [#31](https://github.com/rafaelvieiras/NXRemoteAPI/issues/31)).
   It was `switch_cfw` (leftover of the pre-fork project name) and was frozen
   because it was assumed live in a real production Home Assistant instance;
-  that assumption no longer holds, so ADR-0008 authorized this one rename.
-  Once it lands, treat `nxremoteapi` as frozen under the same reasoning as
-  before — a future rename needs its own explicit ADR, never a side effect of
-  an unrelated change.
+  that assumption no longer held, so ADR-0008 authorized this one rename. Any
+  local install from before this change must be removed and re-added — entity
+  IDs changed from `switch_cfw.*` to `nxremoteapi.*`. `nxremoteapi` is frozen
+  again under the same reasoning as before — a future rename needs its own
+  explicit ADR, never a side effect of an unrelated change.
 - **The Album-override launcher (`firmware/companion-app`'s `LAUNCHER_BUILD`,
   `request_launch_via_album()` in `firmware/core/main.cpp`) has a known, unfixed bug**:
   the HTTP request immediately following a launch takeover intermittently arrives

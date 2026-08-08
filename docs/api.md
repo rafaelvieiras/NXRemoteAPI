@@ -1,7 +1,7 @@
 # NXRemoteAPI HTTP API Documentation (v2.0)
 
 This document describes the HTTP API provided by `firmware/core`, the always-on Switch
-sysmodule. Home Assistant (`custom_components/switch_cfw`) is one client of this API,
+sysmodule. Home Assistant (`custom_components/nxremoteapi`) is one client of this API,
 not the only one it's designed for - the API itself is a generic telemetry/automation/
 remote-control surface for the console.
 
@@ -29,7 +29,7 @@ need a real restart to take effect, not just a config reload).
 - `GET /health` is exempted from auth by the server but has no actual handler - it
   currently falls through to the generic 404. Clients should poll `GET /info` for
   liveness instead.
-- The Home Assistant client (`custom_components/switch_cfw/api.py`) calls `POST /update`
+- The Home Assistant client (`custom_components/nxremoteapi/api.py`) calls `POST /update`
   to trigger a system/firmware update, but `firmware/core/main.cpp` has no handler for
   that route - only `POST /update_app` (self-update of this homebrew app) exists.
   System firmware updates currently have no working server-side endpoint.

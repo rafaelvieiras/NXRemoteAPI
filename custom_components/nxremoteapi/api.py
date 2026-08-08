@@ -1,4 +1,4 @@
-"""API client for Nintendo Switch CFW."""
+"""API client for NXRemoteAPI."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from .const import (
 
 
 class SwitchAPI:
-    """API client for Nintendo Switch CFW Sysmodule."""
+    """API client for NXRemoteAPI Sysmodule."""
 
     def __init__(
         self,

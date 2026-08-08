@@ -1,4 +1,4 @@
-"""Update platform for Nintendo Switch CFW."""
+"""Update platform for NXRemoteAPI."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Config flow for Nintendo Switch CFW integration."""
+"""Config flow for NXRemoteAPI integration."""
 
 from __future__ import annotations
 
@@ -49,7 +49,7 @@ from .const import (
 
 
 class ConfigFlow(ConfigFlowBase, domain=DOMAIN):  # type: ignore[call-arg]
-    """Handle a config flow for Nintendo Switch CFW."""
+    """Handle a config flow for NXRemoteAPI."""
 
     VERSION = 1
 
@@ -347,7 +347,7 @@ class ConfigFlow(ConfigFlowBase, domain=DOMAIN):  # type: ignore[call-arg]
 
 
 class OptionsFlowHandler(OptionsFlow):
-    """Handle an options flow for Nintendo Switch CFW."""
+    """Handle an options flow for NXRemoteAPI."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None

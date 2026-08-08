@@ -1,6 +1,6 @@
 {
-  "domain": "switch_cfw",
-  "name": "Nintendo Switch CFW",
+  "domain": "nxremoteapi",
+  "name": "NXRemoteAPI",
   "after_dependencies": [
     "network"
   ],
@@ -18,7 +18,7 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/rafaelvieiras/NXRemoteAPI/issues",
   "loggers": [
-    "switch_cfw"
+    "nxremoteapi"
   ],
   "requirements": [],
   "version": "0.2.4-dev0",

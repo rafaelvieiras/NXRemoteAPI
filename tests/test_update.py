@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
-from custom_components.switch_cfw.update import SwitchAppUpdate, SwitchSystemUpdate
+from custom_components.nxremoteapi.update import SwitchAppUpdate, SwitchSystemUpdate
 
 
 @pytest.mark.asyncio

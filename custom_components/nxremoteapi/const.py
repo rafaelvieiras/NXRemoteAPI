@@ -1,8 +1,8 @@
-"""Constants for Nintendo Switch CFW integration."""
+"""Constants for the NXRemoteAPI integration."""
 
 import logging
 
-DOMAIN = "switch_cfw"
+DOMAIN = "nxremoteapi"
 LOGGER = logging.getLogger(DOMAIN)
 
 STARTUP_MESSAGE = f"""

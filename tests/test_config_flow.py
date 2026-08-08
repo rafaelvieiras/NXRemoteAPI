@@ -4,8 +4,8 @@ import pytest
 from unittest.mock import MagicMock, patch
 import aiohttp
 from homeassistant.const import CONF_HOST
-from custom_components.switch_cfw.config_flow import ConfigFlow
-from custom_components.switch_cfw.const import (
+from custom_components.nxremoteapi.config_flow import ConfigFlow
+from custom_components.nxremoteapi.const import (
     CONF_API_TOKEN,
     CONF_PORT,
     DEFAULT_PORT,
@@ -27,7 +27,7 @@ async def test_config_flow_manual_success():
 
     # Step 2: User enters IP and token
     with patch(
-        "custom_components.switch_cfw.api.SwitchAPI.get_info",
+        "custom_components.nxremoteapi.api.SwitchAPI.get_info",
         return_value={ATTR_APP_VERSION: MIN_APP_VERSION},
     ):
         result = await flow.async_step_manual_entry(
@@ -53,7 +53,7 @@ async def test_config_flow_manual_outdated():
     )
 
     with patch(
-        "custom_components.switch_cfw.api.SwitchAPI.get_info",
+        "custom_components.nxremoteapi.api.SwitchAPI.get_info",
         return_value={ATTR_APP_VERSION: "0.1.0"},
     ):
         result = await flow.async_step_manual_entry(
@@ -70,7 +70,7 @@ async def test_config_flow_manual_auth_error():
     flow.hass = MagicMock()
 
     with patch(
-        "custom_components.switch_cfw.api.SwitchAPI.get_info",
+        "custom_components.nxremoteapi.api.SwitchAPI.get_info",
         side_effect=aiohttp.ClientResponseError(MagicMock(), MagicMock(), status=401),
     ):
         result = await flow.async_step_manual_entry(
@@ -88,7 +88,7 @@ async def test_config_flow_discovery_success():
 
     # Mock probe success
     with patch(
-        "custom_components.switch_cfw.config_flow.ConfigFlow._async_probe_switch",
+        "custom_components.nxremoteapi.config_flow.ConfigFlow._async_probe_switch",
         return_value={"host": "1.2.3.4", "name": "Switch-LivingRoom"},
     ):
         result = await flow.async_step_discovery()
@@ -102,7 +102,7 @@ async def test_config_flow_discovery_success():
 
         # User confirms with token
         with patch(
-            "custom_components.switch_cfw.api.SwitchAPI.get_info",
+            "custom_components.nxremoteapi.api.SwitchAPI.get_info",
             return_value={ATTR_APP_VERSION: MIN_APP_VERSION},
         ):
             result = await flow.async_step_discovery_confirm(
@@ -128,10 +128,10 @@ async def test_config_flow_zeroconf():
 
     with (
         patch(
-            "custom_components.switch_cfw.config_flow.ConfigFlow.async_set_unique_id"
+            "custom_components.nxremoteapi.config_flow.ConfigFlow.async_set_unique_id"
         ),
         patch(
-            "custom_components.switch_cfw.config_flow.ConfigFlow._abort_if_unique_id_configured"
+            "custom_components.nxremoteapi.config_flow.ConfigFlow._abort_if_unique_id_configured"
         ),
     ):
         result = await flow.async_step_zeroconf(discovery_info)

@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
-from custom_components.switch_cfw.select import SwitchGameSelect
+from custom_components.nxremoteapi.select import SwitchGameSelect
 
 
 @pytest.mark.asyncio

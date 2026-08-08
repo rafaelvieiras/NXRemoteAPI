@@ -1,4 +1,4 @@
-"""Sensor platform for Nintendo Switch CFW."""
+"""Sensor platform for NXRemoteAPI."""
 
 from __future__ import annotations
 from typing import Any, cast

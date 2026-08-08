@@ -1,4 +1,4 @@
-"""Button platform for Nintendo Switch CFW."""
+"""Button platform for NXRemoteAPI."""
 
 from __future__ import annotations
 

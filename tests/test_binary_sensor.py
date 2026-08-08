@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import MagicMock
-from custom_components.switch_cfw.binary_sensor import (
+from custom_components.nxremoteapi.binary_sensor import (
     ChargingBinarySensor,
     DockedBinarySensor,
     SleepBinarySensor,

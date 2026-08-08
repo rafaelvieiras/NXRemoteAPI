@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import MagicMock, AsyncMock
-from custom_components.switch_cfw.button import RebootButton, ShutdownButton
+from custom_components.nxremoteapi.button import RebootButton, ShutdownButton
 
 
 @pytest.mark.asyncio

@@ -1,4 +1,4 @@
-"""The Nintendo Switch CFW integration."""
+"""The NXRemoteAPI integration."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ PLATFORMS: list[Platform] = [
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Nintendo Switch CFW from a config entry."""
+    """Set up NXRemoteAPI from a config entry."""
     LOGGER.info(STARTUP_MESSAGE)
 
     coordinator = SwitchDataUpdateCoordinator(hass, entry)

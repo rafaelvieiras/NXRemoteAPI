@@ -1,4 +1,4 @@
-"""Camera platform for Nintendo Switch CFW."""
+"""Camera platform for NXRemoteAPI."""
 
 from __future__ import annotations
 
@@ -16,13 +16,13 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the Nintendo Switch CFW camera."""
+    """Set up the NXRemoteAPI camera."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities([SwitchCamera(coordinator)])
 
 
 class SwitchCamera(SwitchEntity, Camera):
-    """Nintendo Switch CFW Camera Entity."""
+    """NXRemoteAPI Camera Entity."""
 
     def __init__(self, coordinator) -> None:
         """Initialize the camera."""

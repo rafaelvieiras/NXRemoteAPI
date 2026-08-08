@@ -1,5 +1,5 @@
 name: Bug Report
-description: Create a report to help us improve the Nintendo Switch CFW integration
+description: Create a report to help us improve the NXRemoteAPI integration
 title: '[Bug]: '
 labels: ['bug', 'triage']
 assignees:
@@ -13,7 +13,7 @@ body:
         Before submitting, please check:
         - 📋 [Existing issues](https://github.com/rafaelvieiras/NXRemoteAPI/issues)
         - 📖 [Documentation](https://github.com/rafaelvieiras/NXRemoteAPI/blob/master/README.md)
-        - 🔧 [Integration page](https://my.home-assistant.io/redirect/integration/?domain=switch_cfw) in Home Assistant
+        - 🔧 [Integration page](https://my.home-assistant.io/redirect/integration/?domain=nxremoteapi) in Home Assistant
         - For connection/sys-botbase issues, use the **Connection Bug Report** template instead!
 
   - type: input
@@ -110,7 +110,7 @@ body:
       label: Diagnostic Information
       description: |
         Please provide the diagnostic information for the integration.
-        You can download this from the [Integration page](https://my.home-assistant.io/redirect/integration/?domain=switch_cfw) → ⋮ → Download diagnostics.
+        You can download this from the [Integration page](https://my.home-assistant.io/redirect/integration/?domain=nxremoteapi) → ⋮ → Download diagnostics.
       render: yaml
     validations:
       required: false

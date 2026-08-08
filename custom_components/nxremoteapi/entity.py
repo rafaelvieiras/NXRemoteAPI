@@ -1,4 +1,4 @@
-"""Base entity for Nintendo Switch CFW."""
+"""Base entity for NXRemoteAPI."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from .coordinator import SwitchDataUpdateCoordinator
 
 
 class SwitchEntity(CoordinatorEntity[SwitchDataUpdateCoordinator]):
-    """Base class for Nintendo Switch CFW entities."""
+    """Base class for NXRemoteAPI entities."""
 
     _attr_has_entity_name = True
 

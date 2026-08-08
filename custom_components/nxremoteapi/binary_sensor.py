@@ -1,4 +1,4 @@
-"""Binary sensor platform for Nintendo Switch CFW."""
+"""Binary sensor platform for NXRemoteAPI."""
 
 from __future__ import annotations
 

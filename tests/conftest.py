@@ -25,7 +25,7 @@ def mock_hass():
 @pytest.fixture
 def mock_config_entry():
     """Mock a config entry."""
-    from custom_components.switch_cfw.const import CONF_API_TOKEN
+    from custom_components.nxremoteapi.const import CONF_API_TOKEN
 
     entry = MagicMock()
     entry.data = {CONF_HOST: "1.2.3.4", CONF_API_TOKEN: "test_token"}
@@ -37,7 +37,7 @@ def mock_config_entry():
 def mock_switch_api():
     """Mock the Switch API client."""
     with patch(
-        "custom_components.switch_cfw.coordinator.SwitchAPI", autospec=True
+        "custom_components.nxremoteapi.coordinator.SwitchAPI", autospec=True
     ) as mock:
         client = mock.return_value
         # Removed unsupported __init__ mocking

@@ -4,8 +4,8 @@ Date: 2026-08-08
 
 ## Status
 
-Accepted (implementation pending — see
-[#31](https://github.com/rafaelvieiras/NXRemoteAPI/issues/31))
+Accepted, implemented per
+[#31](https://github.com/rafaelvieiras/NXRemoteAPI/issues/31)
 
 ## Context
 

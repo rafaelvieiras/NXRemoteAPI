@@ -1,4 +1,4 @@
-"""Select platform for Nintendo Switch CFW."""
+"""Select platform for NXRemoteAPI."""
 
 from __future__ import annotations
 

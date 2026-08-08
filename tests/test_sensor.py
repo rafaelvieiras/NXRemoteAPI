@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import MagicMock
-from custom_components.switch_cfw.sensor import (
+from custom_components.nxremoteapi.sensor import (
     FirmwareSensor,
     BatterySensor,
     CurrentGameSensor,
