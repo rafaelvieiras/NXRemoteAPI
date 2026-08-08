@@ -10,6 +10,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/rafaelvieiras/NXRemoteAPI.svg?style=flat-square" alt="License"></a>
   <a href="https://github.com/rafaelvieiras/NXRemoteAPI/actions/workflows/sysmodule_validation.yml"><img src="https://github.com/rafaelvieiras/NXRemoteAPI/actions/workflows/sysmodule_validation.yml/badge.svg" alt="Build & Quality"></a>
   <a href="https://hacs.xyz"><img src="https://img.shields.io/badge/HACS-custom-orange.svg?style=flat-square" alt="hacs"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/changelog-Keep%20a%20Changelog-orange.svg?style=flat-square" alt="Changelog"></a>
 </p>
 
 ---
@@ -54,6 +55,7 @@ firmware/
 └── companion-app/    .nro config/GUI app + Album-override launcher build
 custom_components/switch_cfw/   Home Assistant integration (one client of core's API)
 docs/                            api.md (HTTP contract) + architecture.md (why 3 binaries)
+CHANGELOG.md                     every release, in Keep a Changelog format
 ```
 
 Each part keeps its own native tooling (devkitA64 `Makefile`s under `firmware/`,

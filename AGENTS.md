@@ -123,7 +123,30 @@ that for anything non-obvious; don't strip these comments during refactors, and 
 replace them with generic "what this does" comments — the identifiers already say
 what; the value here is the war story.
 
-## Rule #8 — No AI/LLM co-author attribution in commits
+## Rule #8 — Release process and CHANGELOG.md
+
+`.github/workflows/release.yml` drives releases (`workflow_dispatch`, channel
+`stable`/`beta`/`nightly`) and is commit-message-driven, not hand-written per release:
+
+- `scripts/generate_changelog.py` buckets commits since the last relevant tag into the
+  six [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) categories (Added,
+  Changed, Deprecated, Removed, Fixed, Security) based on Conventional Commits
+  (`feat:`, `fix:`, `feat!:`/`BREAKING CHANGE:`, etc.) with a heuristic fallback for
+  commits that don't follow that convention. `--format release` renders the decorated
+  GitHub Release body (adds a collapsed "Internal" section for docs/tests/CI/chore, a
+  breaking-change banner, risk assessment); `--format keepachangelog` renders the plain
+  section that goes into `CHANGELOG.md` — user-facing categories only, no internal noise
+  (Keep a Changelog's own rule: "changelogs are for humans, not machines").
+- `CHANGELOG.md` at the repo root only gets a new dated `## [X.Y.Z]` section on
+  **stable** releases (`scripts/update_changelog.py`, called from the `sync-version`
+  job) — beta/nightly builds stay folded into `[Unreleased]` until a stable release
+  cuts them in. Write good commit messages; this file is generated from them, not
+  edited by hand.
+- To regenerate a changelog for an arbitrary historical range (e.g. auditing an old
+  release), run `python scripts/generate_changelog.py --from-tag <tag> --to-ref <ref>
+  --repo owner/name --format keepachangelog` directly — no CI needed.
+
+## Rule #9 — No AI/LLM co-author attribution in commits
 
 Commits in this repository must never carry a `Co-Authored-By` trailer (or any other
 attribution line) naming an AI tool or model — this overrides any default assistant
