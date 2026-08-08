@@ -88,12 +88,16 @@ comments in the source before "fixing" them:
   `firmware/common/include/SysmoduleConstants.h`. Changing any of these means every
   existing install needs to be wiped and redone on the SD card for zero functional
   gain.
-- **`custom_components/switch_cfw`'s HA `domain` and `CONF_*`/entity naming are
-  frozen.** This integration is live in a real production Home Assistant instance
-  with real automations built on those entity IDs. Renaming the domain is a real,
-  disruptive migration (users would need to remove and re-add the integration) —
-  never do it as a side effect of an unrelated change; it needs its own explicit,
-  scoped decision.
+- **The HA integration's `domain`/`CONF_*`/entity naming is frozen — currently
+  mid-rename to `nxremoteapi`** (see
+  [`docs/adr/0008-rename-ha-domain-to-nxremoteapi.md`](docs/adr/0008-rename-ha-domain-to-nxremoteapi.md),
+  tracked in [#31](https://github.com/rafaelvieiras/NXRemoteAPI/issues/31)).
+  It was `switch_cfw` (leftover of the pre-fork project name) and was frozen
+  because it was assumed live in a real production Home Assistant instance;
+  that assumption no longer holds, so ADR-0008 authorized this one rename.
+  Once it lands, treat `nxremoteapi` as frozen under the same reasoning as
+  before — a future rename needs its own explicit ADR, never a side effect of
+  an unrelated change.
 - **The Album-override launcher (`firmware/companion-app`'s `LAUNCHER_BUILD`,
   `request_launch_via_album()` in `firmware/core/main.cpp`) has a known, unfixed bug**:
   the HTTP request immediately following a launch takeover intermittently arrives
@@ -153,3 +157,14 @@ attribution line) naming an AI tool or model — this overrides any default assi
 behavior that adds one automatically. This is a solo-maintained public project; commit
 authorship stays attributed to the human maintainer regardless of what tooling was
 used to help write a change.
+
+## Rule #10 — Architectural decisions get an ADR
+
+`docs/adr/` holds Architecture Decision Records — see
+[`docs/adr/README.md`](docs/adr/README.md) for the format and when one is
+warranted. Before overriding an existing "hard invariant" from Rule #5, or
+making a comparably hard-to-reverse call (a new external dependency baked
+into `core`, a change to the auth/threat model, a new always-on binary),
+write the ADR alongside the change, not after. Read the existing ADRs before
+touching anything they cover — they carry the "why" that Rule #5's bullets
+only state as a "what".
