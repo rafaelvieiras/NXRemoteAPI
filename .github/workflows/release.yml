@@ -56,6 +56,8 @@ jobs:
       tag: ${{ steps.get_version.outputs.tag }}
       is_prerelease: ${{ steps.get_version.outputs.is_prerelease }}
       release_body: ${{ steps.get_version.outputs.release_body }}
+      changelog_from: ${{ steps.get_version.outputs.changelog_from }}
+      released_date: ${{ steps.get_version.outputs.released_date }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -83,7 +85,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: release-body
-          path: release_body.md
+          path: |
+            release_body.md
+            changelog_entry.md
 
   sync-version:
     name: Sync Repository Version
@@ -118,6 +122,23 @@ jobs:
             python .github/scripts/update_templates.py "${{ needs.versioning.outputs.version }}"
           fi
 
+      - name: Download Release Body
+        uses: actions/download-artifact@v8
+        with:
+          name: release-body
+
+      - name: Update CHANGELOG.md (stable releases only)
+        if: (github.event.inputs.release_type || (contains(github.event.head_commit.message, '[bump-version]') && 'stable' || 'beta')) == 'stable'
+        shell: bash
+        run: |
+          python scripts/update_changelog.py \
+            --version "${{ needs.versioning.outputs.version }}" \
+            --tag "${{ needs.versioning.outputs.tag }}" \
+            --previous-tag "${{ needs.versioning.outputs.changelog_from }}" \
+            --date "${{ needs.versioning.outputs.released_date }}" \
+            --entry-file changelog_entry.md \
+            --repo "${{ github.repository }}"
+
       - name: Upload Updated Components
 
 
@@ -139,16 +160,11 @@ jobs:
 
       - name: Commit and Push
         run: |
-          git add custom_components/*/manifest.json .github/ISSUE_TEMPLATE/*.yml .github/ISSUE_TEMPLATE/*.yaml 2>/dev/null || true
+          git add custom_components/*/manifest.json .github/ISSUE_TEMPLATE/*.yml .github/ISSUE_TEMPLATE/*.yaml CHANGELOG.md 2>/dev/null || true
           if ! git diff --staged --quiet; then
             git commit -m "chore: release version ${{ needs.versioning.outputs.version }} [skip ci]"
             git push origin HEAD:${{ github.ref_name }} || (git pull --rebase origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }})
           fi
-
-      - name: Download Release Body
-        uses: actions/download-artifact@v8
-        with:
-          name: release-body
 
       - name: Update Draft Status (Zipping Integration)
         shell: bash

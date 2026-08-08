@@ -159,6 +159,34 @@ def main():
     if not changelog_md:
         changelog_md = "_No categorised changes detected._"
 
+    # Same commit range, rendered as a plain Keep a Changelog section — this is
+    # what update_changelog.py inserts into CHANGELOG.md for stable releases.
+    changelog_entry_md = ""
+    if os.path.exists("scripts/generate_changelog.py"):
+        try:
+            changelog_entry_md = (
+                subprocess.check_output(
+                    [
+                        "python",
+                        "scripts/generate_changelog.py",
+                        "--from-tag",
+                        changelog_from,
+                        "--total-commits",
+                        str(total_commit_count),
+                        "--repo",
+                        repo,
+                        "--format",
+                        "keepachangelog",
+                    ]
+                )
+                .decode("utf-8")
+                .strip()
+            )
+        except Exception:
+            changelog_entry_md = "_No user-facing changes._"
+    with open("changelog_entry.md", "w", encoding="utf-8") as f:
+        f.write(changelog_entry_md + "\n")
+
     # Channel decorations
     channel_badge = {
         "stable": "![Stable](https://img.shields.io/badge/channel-stable-brightgreen?style=flat-square)",
@@ -289,6 +317,8 @@ def main():
             f.write(f"version={version}\n")
             f.write(f"tag={tag}\n")
             f.write(f"is_prerelease={is_prerelease}\n")
+            f.write(f"changelog_from={changelog_from}\n")
+            f.write(f"released_date={datetime.utcnow().strftime('%Y-%m-%d')}\n")
             import uuid
 
             delimiter = f"gh_release_{uuid.uuid4().hex}"
