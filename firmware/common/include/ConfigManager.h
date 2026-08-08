@@ -27,6 +27,17 @@ public:
     bool getDebug();
     void setDebug(bool debug);
 
+    // Gate core's capssc (GET /screenshot) and hiddbg (POST /button) service
+    // init - both default on to match existing behavior, but a client that only
+    // wants telemetry/automation (not remote control/screen capture) can turn
+    // them off to shave a bit of core's steady-state resource usage. See
+    // AGENTS.md Rule #6.
+    bool getEnableScreenshot();
+    void setEnableScreenshot(bool enable);
+
+    bool getEnableInput();
+    void setEnableInput(bool enable);
+
     void generateDefaultConfig();
     void generatePassphrase(char* out, size_t max_len);
 
@@ -38,7 +49,9 @@ private:
     int m_port;
     long m_lastUpdateCheck;
     bool m_debug;
-    const char* m_configPath = "sdmc:/config/HomeAssistantSwitch/settings.json";
+    bool m_enableScreenshot;
+    bool m_enableInput;
+    const char* m_configPath = "sdmc:/config/NXRemoteAPI/settings.json";
 
     void generateRandomToken(char* out, size_t length);
 };

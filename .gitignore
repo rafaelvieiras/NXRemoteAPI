@@ -8,13 +8,17 @@ build/
 *.o
 *.d
 *.nacp
-switch_app/build/
-switch_sysmodule/build/
-switch_sysmodule_orchestrator/build/
+firmware/companion-app/build/
+firmware/core/build/
+firmware/orchestrator/build/
 switch_build_out/
 # Renamed NSO used only as an intermediate for local PFS0/exefs.nsp packaging
-switch_sysmodule/main
-switch_sysmodule_orchestrator/main
+firmware/core/main
+firmware/orchestrator/main
+
+# Compiled host-native test binaries (firmware/common/tests) - build them, don't commit them
+firmware/common/tests/run_tests
+firmware/common/tests/run_tests_asan
 logo.png
 *.log
 *build*.txt

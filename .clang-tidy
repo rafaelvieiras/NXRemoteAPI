@@ -1,0 +1,32 @@
+# Scoped in practice to firmware/common/ (the host-buildable subset of the C++
+# code - see AGENTS.md Rule #4). The devkitA64-only code under firmware/core,
+# firmware/orchestrator and firmware/companion-app isn't run through this yet:
+# it needs a cross-compile compile_commands.json (e.g. via `bear`), which is
+# more setup than the host-buildable subset needs. Tracked as follow-up work,
+# not a blocker for using this on firmware/common.
+Checks: >
+  clang-diagnostic-*,
+  clang-analyzer-*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  cert-*,
+  -cert-err33-c,
+  -cert-msc30-c,
+  -cert-msc50-cpp,
+  performance-*,
+  portability-*,
+  readability-*,
+  -readability-magic-numbers,
+  -readability-identifier-length,
+  -readability-braces-around-statements,
+  -readability-else-after-return,
+  -readability-implicit-bool-conversion,
+  -readability-make-member-function-const,
+  -readability-convert-member-functions-to-static,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-bool-literals
+
+WarningsAsErrors: ''
+HeaderFilterRegex: 'firmware/common/include/.*'
+FormatStyle: none

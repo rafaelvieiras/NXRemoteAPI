@@ -14,11 +14,11 @@
 #include <netinet/in.h>
 #include <errno.h>
 #include <time.h>
-#include "../switch_sysmodule/include/ConfigManager.h"
-#include "../switch_sysmodule/include/SysmoduleConstants.h"
+#include "ConfigManager.h"
+#include "SysmoduleConstants.h"
 
 // Same low-level startup overrides core uses (see the matching block in
-// switch_sysmodule/main.cpp) - required for ANY boot2-launched sysmodule, not optional
+// firmware/core/main.cpp) - required for ANY boot2-launched sysmodule, not optional
 // boilerplate. Without __nx_applet_type = AppletType_None here, libnx's default
 // __appInit tries to set up an applet/am session that doesn't exist yet this early in
 // boot, which is what actually caused the crash loop the first time this was deployed
@@ -67,7 +67,7 @@ extern "C" {
 u32 __nx_applet_type = AppletType_None;
 u32 __nx_fs_num_sessions = 1;
 
-// Minimal always-on supervisor for the real HomeAssistant sysmodule ("core", program id
+// Minimal always-on supervisor for the real NXRemoteAPI core sysmodule ("core", program id
 // SYSMODULE_PROGRAM_ID). This process is what Atmosphere's boot2 launches now - it
 // launches core itself right after boot, then just watches it and owns the one thing
 // core must never be responsible for policing itself: restarting after a bad deploy.
@@ -82,7 +82,7 @@ u32 __nx_fs_num_sessions = 1;
 #define HEALTH_CHECK_FAIL_THRESHOLD 3 // ~45s of no response before we act
 
 static void log_line(const char* msg) {
-    FILE *f = fopen("sdmc:/config/HomeAssistantSwitch/ha_orchestrator_boot.log", "a");
+    FILE *f = fopen("sdmc:/config/NXRemoteAPI/orchestrator_boot.log", "a");
     if (f) {
         time_t t = time(NULL);
         fprintf(f, "[%ld] %s\n", (long)t, msg);
@@ -276,7 +276,7 @@ int main(int, char**) {
     fsInitialize();
     fsdevMountSdmc();
     mkdir("sdmc:/config", 0777);
-    mkdir("sdmc:/config/HomeAssistantSwitch", 0777);
+    mkdir("sdmc:/config/NXRemoteAPI", 0777);
     ConfigManager::getInstance().load();
 
     log_line("[BOOT] Orchestrator started");

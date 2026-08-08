@@ -1,7 +1,7 @@
 #---------------------------------------------------------------------------------
 .SUFFIXES:
 
-TARGET		:=	homeassistant_sysmodule
+TARGET		:=	nxremoteapi_orchestrator
 BUILD		:=	build
 SOURCES		:=	.
 INCLUDES	:=	include
@@ -20,11 +20,13 @@ NM		:=	$(PREFIX)nm
 
 #---------------------------------------------------------------------------------
 DEFINES	:=	-D__SWITCH__
-CFLAGS	:=	-g -Wall -Wextra -O2 -ffunction-sections -fPIE $(ARCH) $(DEFINES) -I$(CURDIR)/include -isystem $(DEVKITPRO)/libnx/include -isystem $(DEVKITPRO)/portlibs/switch/include
+CFLAGS	:=	-g -Wall -Wextra -O2 -ffunction-sections -fPIE $(ARCH) $(DEFINES) -I$(CURDIR)/../common/include -isystem $(DEVKITPRO)/libnx/include -isystem $(DEVKITPRO)/portlibs/switch/include
 CXXFLAGS:=	$(CFLAGS) -std=c++17 -fno-rtti -fno-exceptions
 LDFLAGS	:=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -pie -Wl,-Map,$(notdir $*.map) -L$(DEVKITPRO)/libnx/lib -L$(DEVKITPRO)/portlibs/switch/lib
 
-LIBS	:= -lcurl -lmbedtls -lmbedcrypto -lmbedx509 -lz -lnx
+# No curl/mbedtls/z here on purpose - the orchestrator never talks to the network
+# beyond loopback health checks and its own tiny control port, unlike core.
+LIBS	:= -lnx
 
 #---------------------------------------------------------------------------------
 all: $(TARGET).nso
@@ -34,7 +36,7 @@ $(TARGET).nso: $(TARGET).elf
 	@echo built ... $@
 
 
-$(TARGET).elf: main.cpp ConfigManager.cpp
+$(TARGET).elf: main.cpp ../common/ConfigManager.cpp
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ $(LIBS) -o $@
 
 clean:

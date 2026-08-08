@@ -13,7 +13,10 @@ TEST_CASE("ConfigManager loads and saves correctly", "[config]") {
         cfg.generateDefaultConfig();
         
         REQUIRE(strlen(cfg.getApiToken()) > 0);
-        REQUIRE(cfg.getPort() == 1337);
+        // 8275 is ConfigManager's real default (see the constructor and
+        // generateDefaultConfig() in ConfigManager.cpp) - this assertion used to
+        // check 1337, which was never the actual default anywhere in the code.
+        REQUIRE(cfg.getPort() == 8275);
     }
 
     SECTION("Loading missing config generates default") {

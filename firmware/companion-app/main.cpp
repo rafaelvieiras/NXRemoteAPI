@@ -12,21 +12,21 @@
 #include <vector>
 #include <string>
 #include <errno.h>
-#include "../switch_sysmodule/include/ConfigManager.h"
-#include "../switch_sysmodule/include/SysmoduleConstants.h"
+#include "ConfigManager.h"
+#include "SysmoduleConstants.h"
 #include "json.hpp"
 
 using json = nlohmann::json;
 
 #ifdef LAUNCHER_BUILD
-// Only the launcher build target (see switch_app/Makefile) needs this. The .nro build
+// Only the launcher build target (see firmware/companion-app/Makefile) needs this. The .nro build
 // runs under nx-hbloader, which hands it a large pre-sized heap by default - fine as-is,
 // proven working. The launcher build is a genuine standalone exefs.nsp process (no
 // hbloader involved), where an unmodified default __libnx_initheap gives a heap far too
 // small for this binary's curl/mbedtls/zlib linkage (unused at runtime in launcher mode,
 // but still statically linked in) - confirmed on real hardware via a crash report
 // (Atmosphère result 2345-0015, LibnxError_HeapAllocFailed) the very first time this ran
-// as the Album override. Same size as core's own heap (switch_sysmodule/main.cpp),
+// as the Album override. Same size as core's own heap (firmware/core/main.cpp),
 // which links the identical library set successfully.
 extern "C" void __libnx_initheap(void) {
     static char inner_heap[0x200000]; // 2MB
@@ -41,7 +41,7 @@ extern "C" void __libnx_initheap(void) {
 #define APP_VERSION "0.2.4-dev"
 #endif
 
-#define REPO_NAME "FaserF/ha-NintendoSwitchCFW"
+#define REPO_NAME "rafaelvieiras/NXRemoteAPI"
 #define REPO_URL "https://github.com/" REPO_NAME
 
 struct ReleaseInfo {
@@ -114,7 +114,7 @@ bool fill_release_info(ReleaseInfo& info) {
         curl_easy_setopt(curl_handle, CURLOPT_URL, url);
         curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
         curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
-        curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "HomeAssistant-Switch-Integration/1.0"); 
+        curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "NXRemoteAPI/1.0");
         curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 0L);
         curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1L);
         curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 10L); 
@@ -166,7 +166,7 @@ bool fill_release_info(ReleaseInfo& info) {
                 if (name == "main") info.url_main = url;
                 else if (name == "main.npdm") info.url_npdm = url;
                 else if (name == "boot2.flag") info.url_flag = url;
-                else if (name == "homeassistant.nro") info.url_nro = url;
+                else if (name == "nxremoteapi.nro") info.url_nro = url;
             }
         }
         info.valid = true;
@@ -342,7 +342,7 @@ bool download_update(const std::string& /*version*/) {
     }
     
     add_app_log("[INFO] Downloading update assets...");
-    bool nro_ok = download_file(g_latest_release.url_nro, "sdmc:/switch/homeassistant.nro");
+    bool nro_ok = download_file(g_latest_release.url_nro, "sdmc:/switch/nxremoteapi.nro");
     bool nso_ok = download_file(g_latest_release.url_main, "sdmc:/atmosphere/contents/010000000000CAFE/exefs/main");
     
     bool npdm_ok = true;
@@ -454,7 +454,7 @@ void fetch_sysmodule_logs() {
 
 void fetch_offline_boot_logs() {
     static long last_pos = 0;
-    FILE *f = fopen("sdmc:/config/HomeAssistantSwitch/ha_sysmodule_boot.log", "r");
+    FILE *f = fopen("sdmc:/config/NXRemoteAPI/core_boot.log", "r");
     if (f) {
         fseek(f, 0, SEEK_END);
         long current_size = ftell(f);
@@ -539,7 +539,7 @@ void draw_ui(const std::string& latest_ver, bool checking_update, bool sysmodule
     
     // Fixed Footer at Row 40+
     printf("\x1b[40;1H (X)Check  (Y)Update  (ZR)Reset  (-)DevMode  (+)Exit\n");
-    printf("\x1b[42;1H Brought to you by \x1b[1;32mFaserF\x1b[0m - \x1b[1;94m" REPO_URL "\x1b[0m\n");
+    printf("\x1b[42;1H \x1b[1;32mNXRemoteAPI\x1b[0m - \x1b[1;94m" REPO_URL "\x1b[0m\n");
     
     if (g_dev_mode) {
         printf("\x1b[43;1H \x1b[45m\x1b[1;37m DEV MODE ACTIVE \x1b[0m  UDP: 2828                                      \n");
@@ -605,7 +605,7 @@ int main(int, char **) {
                 char err[128]; snprintf(err, sizeof(err), "\x1b[31m[ERROR] Bridge: %s (Port %d)\x1b[0m", g_sys_status_msg.c_str(), ConfigManager::getInstance().getPort()); 
                 add_app_log(err); 
                 if (loop_count % 10 == 0) {
-                    add_app_log("\x1b[33m[HINT] No bridge? Check /config/HomeAssistantSwitch/boot.log\x1b[0m");
+                    add_app_log("\x1b[33m[HINT] No bridge? Check /config/NXRemoteAPI/core_boot.log\x1b[0m");
                     check_and_fix_sysmodule(); // Aggressive retry
                 }
             }

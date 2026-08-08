@@ -27,7 +27,7 @@
 #include <thread>
 #include <string>
 #include <atomic>
-#include "include/json.hpp"
+#include "json.hpp"
 
 using json = nlohmann::json;
 
@@ -77,9 +77,10 @@ extern "C" {
     Result hiddbgSetAutoPilotVirtualPadState(s8 AbstractedVirtualPadId, const HiddbgAbstractedPadState *state);
 }
 
-#include "include/ConfigManager.h"
-#include "include/Logger.h"
-#include "include/SysmoduleConstants.h"
+#include "ConfigManager.h"
+#include "Logger.h"
+#include "SysmoduleConstants.h"
+#include "HttpFraming.h"
 
 Logger g_logger;
 
@@ -122,8 +123,8 @@ void mdns_responder() {
         socklen_t addr_len = sizeof(client_addr);
         int n = recvfrom(sd, buffer, sizeof(buffer), 0, (struct sockaddr*)&client_addr, &addr_len);
         if (n > 12) {
-            // Check for "_homeassistant" label in query
-            if ((buffer[2] & 0x80) == 0 && strstr((char*)buffer + 12, "_homeassistant")) {
+            // Check for "_nxremoteapi" label in query
+            if ((buffer[2] & 0x80) == 0 && strstr((char*)buffer + 12, "_nxremoteapi")) {
                 u32 ip = 0; nifmGetCurrentIpAddress(&ip);
                 unsigned char response[] = {
                     0x00, 0x00, 0x84, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
@@ -212,12 +213,12 @@ static ssize_t send_timeout(int sock, const void* buf, size_t len, int timeout_s
     return (ssize_t)sent;
 }
 
-// Where the pre-staged launcher binary (switch_app's `launcher` build target - see
-// switch_app/Makefile) lives permanently on the SD card, deployed there the same way as
+// Where the pre-staged launcher binary (firmware/companion-app's `launcher` build target - see
+// firmware/companion-app/Makefile) lives permanently on the SD card, deployed there the same way as
 // every other release artifact (FTP), not fetched at request time. install/uninstall
 // below just copy/remove these two files into/out of Album's real content-override
 // slot, immediately around each launch that needs it (see ALBUM_OVERRIDE_PROGRAM_ID).
-#define LAUNCHER_ASSET_DIR "sdmc:/config/HomeAssistantSwitch/launcher"
+#define LAUNCHER_ASSET_DIR "sdmc:/config/NXRemoteAPI/launcher"
 #define ALBUM_OVERRIDE_EXEFS_DIR "sdmc:/atmosphere/contents/" ALBUM_OVERRIDE_PROGRAM_ID "/exefs"
 
 static bool copy_file(const char* src, const char* dst) {
@@ -259,9 +260,9 @@ static void uninstall_album_launcher_override() {
     remove(ALBUM_OVERRIDE_EXEFS_DIR "/main.npdm");
 }
 
-// How long to wait for switch_app's launcher build to report launched/error via
+// How long to wait for firmware/companion-app's launcher build to report launched/error via
 // launch_status.json after we hand it control (see run_launcher_mode() in
-// switch_app/main.cpp) before giving up and restoring the real Album regardless.
+// firmware/companion-app/main.cpp) before giving up and restoring the real Album regardless.
 #define ALBUM_LAUNCHER_TIMEOUT_SEC 20
 
 // Tracked in-process (single-threaded server, no locking needed) so a pending
@@ -271,7 +272,7 @@ static void uninstall_album_launcher_override() {
 static bool g_album_override_active = false;
 static u64 g_album_override_installed_tick = 0;
 
-// Restores the real Album as soon as switch_app's launcher build reports a terminal
+// Restores the real Album as soon as firmware/companion-app's launcher build reports a terminal
 // state (or after ALBUM_LAUNCHER_TIMEOUT_SEC regardless, in case it never gets far
 // enough to write one at all - eg. a bad npdm). Deliberately NOT a blocking wait loop:
 // std::thread aborts the whole process here (see the note near mdns_responder_entry),
@@ -310,7 +311,7 @@ static void poll_album_launcher_completion() {
 }
 
 // Gets a real Application applet session to launch `tid` correctly (base+patch layering
-// included) by briefly taking over the Album applet with switch_app's launcher build -
+// included) by briefly taking over the Album applet with firmware/companion-app's launcher build -
 // see ALBUM_OVERRIDE_PROGRAM_ID's comment in SysmoduleConstants.h for the full
 // rationale. Only called as a fallback from launch_program_by_id() below, for the
 // specific failure (NcaBaseStorageOutOfRangeC) this exists to work around - not the
@@ -437,9 +438,12 @@ static Result launch_program_by_id(u64 tid) {
     return rc;
 }
 
+extern bool g_hiddbg_ready;
+
 void handle_client(int client_sock) {
     trace("handle_client: entered");
     poll_album_launcher_completion();
+    bool hiddbg_ready = g_hiddbg_ready;
     char buffer[2048] = {0};
     int bytes_read = recv_timeout(client_sock, buffer, sizeof(buffer) - 1, 2);
     {
@@ -458,35 +462,25 @@ void handle_client(int client_sock) {
     // The single recv() above can return with just the headers and zero body bytes
     // even though the client already sent both - leaving POST handlers below (eg.
     // POST /command's launch_app) looking at an empty body and misreporting "Missing
-    // action" even though one was sent. Keep pulling more data in until we've seen the
-    // full Content-Length worth of body, or run out of buffer/time.
+    // action" even though one was sent. Keep pulling more data in until
+    // HttpFraming::HasCompleteBody() (unit-tested in firmware/common/tests, see
+    // AGENTS.md Rule #4) says the full Content-Length worth of body has arrived, or
+    // we run out of buffer/time.
     {
-        char* body_start = strstr(buffer, "\r\n\r\n");
-        if (body_start) {
-            char* cl_hdr = strstr(buffer, "Content-Length:");
-            if (!cl_hdr) cl_hdr = strstr(buffer, "content-length:");
-            if (cl_hdr) {
-                long content_length = strtol(cl_hdr + 15, NULL, 10);
-                long have_body = bytes_read - ((body_start + 4) - buffer);
-                {
-                    char msg[128];
-                    snprintf(msg, sizeof(msg), "body-wait: initial bytes_read=%d have_body=%ld content_length=%ld",
-                             bytes_read, have_body, content_length);
-                    LOG_I(msg);
-                }
-                while (have_body < content_length && bytes_read < (int)(sizeof(buffer) - 1)) {
-                    int more = recv_timeout(client_sock, buffer + bytes_read, sizeof(buffer) - 1 - bytes_read, 2);
-                    {
-                        char msg[64];
-                        snprintf(msg, sizeof(msg), "body-wait: retry recv_timeout returned %d", more);
-                        LOG_I(msg);
-                    }
-                    if (more <= 0) break;
-                    bytes_read += more;
-                    have_body += more;
-                }
-            }
+        char msg[128];
+        snprintf(msg, sizeof(msg), "body-wait: initial bytes_read=%d complete=%d",
+                 bytes_read, HttpFraming::HasCompleteBody(buffer, bytes_read));
+        LOG_I(msg);
+    }
+    while (!HttpFraming::HasCompleteBody(buffer, bytes_read) && bytes_read < (int)(sizeof(buffer) - 1)) {
+        int more = recv_timeout(client_sock, buffer + bytes_read, sizeof(buffer) - 1 - bytes_read, 2);
+        {
+            char msg[64];
+            snprintf(msg, sizeof(msg), "body-wait: retry recv_timeout returned %d", more);
+            LOG_I(msg);
         }
+        if (more <= 0) break;
+        bytes_read += more;
     }
 
     bool requires_auth = true;
@@ -496,14 +490,10 @@ void handle_client(int client_sock) {
 
     if (requires_auth) {
         const char* api_token = ConfigManager::getInstance().getApiToken();
-        char token_header[128];
-        snprintf(token_header, sizeof(token_header), "X-API-Token: %s", api_token);
-        
-        if (!strstr(buffer, token_header)) {
+        if (!HttpFraming::HasValidApiToken(buffer, api_token)) {
             ConfigManager::getInstance().load();
             api_token = ConfigManager::getInstance().getApiToken();
-            snprintf(token_header, sizeof(token_header), "X-API-Token: %s", api_token);
-            if (!strstr(buffer, token_header)) {
+            if (!HttpFraming::HasValidApiToken(buffer, api_token)) {
                 const char *resp = "HTTP/1.1 401 Unauthorized\r\nConnection: close\r\nContent-Type: application/json\r\n\r\n{\"error\": \"Unauthorized\"}";
                 send_timeout(client_sock, resp, strlen(resp));
                 close(client_sock);
@@ -552,6 +542,17 @@ void handle_client(int client_sock) {
         svcGetInfo(&total_mem, InfoType_TotalMemorySize, CUR_PROCESS_HANDLE, 0);
         svcGetInfo(&used_mem, InfoType_UsedMemorySize, CUR_PROCESS_HANDLE, 0);
         trace("info: after svcGetInfo");
+
+        // svcGetInfo above reports Horizon's view of this process's whole address
+        // space (code+heap+everything mapped) - useful for "is this process about
+        // to OOM" but not for tracking *this project's* stated low-memory-footprint
+        // goal at the allocator level. mallinfo() reports newlib's own heap
+        // bookkeeping within the fixed __libnx_initheap() arena: uordblks is bytes
+        // actually handed out via malloc/new right now, arena is how much of the
+        // static heap newlib has carved out to serve allocations from at all
+        // (usually grows monotonically as the heap gets used, doesn't shrink).
+        struct mallinfo heap_info = mallinfo();
+        trace("info: after mallinfo");
 
         u64 sd_total = 0;
         s64 sd_free = 0;
@@ -632,6 +633,7 @@ void handle_client(int client_sock) {
             "{\"firmware_version\": \"%u.%u.%u\", \"app_version\": \"" APP_VERSION "\", \"battery_level\": %u, \"charging\": %s, "
             "\"cpu_temp\": %d, \"gpu_temp\": %d, \"skin_temp\": %d, "
             "\"uptime\": %lu, \"wifi_rssi\": %u, \"mem_total\": %lu, \"mem_used\": %lu, "
+            "\"heap_arena\": %u, \"heap_used\": %u, "
             "\"sd_total\": %lu, \"sd_free\": %lu, \"current_title_id\": \"0x%016lX\", "
             "\"current_game\": \"%s\", \"docked\": %s, \"sleep_mode\": %s, \"error_count\": %u}",
             (unsigned int)fw_ver.major, (unsigned int)fw_ver.minor, (unsigned int)fw_ver.micro,
@@ -642,6 +644,7 @@ void handle_client(int client_sock) {
             // silently truncated every real reading (e.g. 42C) down to 0.
             (int)cpu_temp, (int)gpu_temp, (int)skin_temp,
             (unsigned long)uptime_s, (unsigned int)rssi, (unsigned long)total_mem, (unsigned long)used_mem,
+            (unsigned int)heap_info.arena, (unsigned int)heap_info.uordblks,
             (unsigned long)sd_total, (unsigned long)sd_free, (unsigned long)title_id,
             title_name, (is_docked) ? "true" : "false", (is_sleeping) ? "true" : "false",
             (unsigned int)Logger::getInstance().getErrorCount()
@@ -869,7 +872,7 @@ void handle_client(int client_sock) {
     }
 
     if (strstr(buffer, "GET /launch_status")) {
-        // Reflects launch_status.json as-is - written by switch_app's launcher build
+        // Reflects launch_status.json as-is - written by firmware/companion-app's launcher build
         // during an Album-override fallback (see request_launch_via_album above), or
         // absent/stale between launches. No in-memory state kept here: this is the only
         // reader, and the file is small enough to just re-read on every request.
@@ -896,12 +899,18 @@ void handle_client(int client_sock) {
         u32 count = Logger::getInstance().getLogCount();
         std::string json_out = "[";
         for (u32 i = 0; i < count; i++) {
+            LogEntry log;
+            // getLog() now copies the entry out under Logger's internal lock (see
+            // AGENTS.md / Logger.h) instead of returning a pointer into the ring
+            // buffer, which a concurrent log() call from the mDNS responder thread
+            // could otherwise overwrite between the lock being released and us
+            // reading through it here.
+            if (!Logger::getInstance().getLog(i, &log)) continue;
             if (i > 0) json_out += ",";
-            const LogEntry* log = Logger::getInstance().getLog(i);
             char entry[1024];
-            const char* level_str = (log->level == LOG_LEVEL_INFO) ? "INFO" : (log->level == LOG_LEVEL_WARN) ? "WARN" : "ERROR";
-            snprintf(entry, sizeof(entry), "{\"level\": \"%s\", \"message\": \"%s\", \"timestamp\": \"%s\"}", 
-                     level_str, log->message, log->timestamp);
+            const char* level_str = (log.level == LOG_LEVEL_INFO) ? "INFO" : (log.level == LOG_LEVEL_WARN) ? "WARN" : "ERROR";
+            snprintf(entry, sizeof(entry), "{\"level\": \"%s\", \"message\": \"%s\", \"timestamp\": \"%s\"}",
+                     level_str, log.message, log.timestamp);
             json_out += entry;
         }
         json_out += "]";
@@ -989,6 +998,9 @@ void handle_client(int client_sock) {
         spsmInitialize();
         spsmShutdown(true);
         spsmExit();
+    } else if (strstr(buffer, "POST /button") && !hiddbg_ready) {
+        const char *resp = "HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\n\r\n{\"error\": \"Input control disabled (enable_input=false in settings.json)\"}";
+        send_timeout(client_sock, resp, strlen(resp));
     } else if (strstr(buffer, "POST /button")) {
         char* body = strstr(buffer, "\r\n\r\n");
         if (body) {
@@ -1089,6 +1101,7 @@ void handle_client(int client_sock) {
 }
 
 bool g_capssc_ready = false;
+bool g_hiddbg_ready = false;
 
 // std::thread aborts the whole process in this environment (libnx + -fno-exceptions:
 // a failed thread creation hits a throw, which becomes std::terminate/abort with no
@@ -1114,7 +1127,7 @@ void mdns_responder_entry(void*) {
 // reboots - see "Metodologia de diagnóstico" in the project doc).
 
 void log_boot_status(const char* service, Result rc) {
-    FILE *fb = fopen("sdmc:/config/HomeAssistantSwitch/ha_sysmodule_boot.log", "a");
+    FILE *fb = fopen("sdmc:/config/NXRemoteAPI/core_boot.log", "a");
     if (fb) {
         if (R_SUCCEEDED(rc)) {
             fprintf(fb, "[OK] %s initialized\n", service);
@@ -1134,7 +1147,7 @@ void log_boot_status(const char* service, Result rc) {
 // per request (and unbounded log growth) during normal operation.
 void trace(const char* msg) {
     if (!ConfigManager::getInstance().getDebug()) return;
-    FILE *f = fopen("sdmc:/config/HomeAssistantSwitch/ha_sysmodule_boot.log", "a");
+    FILE *f = fopen("sdmc:/config/NXRemoteAPI/core_boot.log", "a");
     if (f) { fprintf(f, "[TRACE] %s\n", msg); fflush(f); fclose(f); }
 }
 
@@ -1156,21 +1169,21 @@ static int create_listen_socket() {
     address.sin_port = htons(ConfigManager::getInstance().getPort());
     address.sin_addr.s_addr = INADDR_ANY;
     if (bind(fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        FILE *f = fopen("sdmc:/config/HomeAssistantSwitch/ha_sysmodule_boot.log", "a");
+        FILE *f = fopen("sdmc:/config/NXRemoteAPI/core_boot.log", "a");
         if (f) { fprintf(f, "[ERR] bind failed: %d\n", errno); fclose(f); }
         LOG_E("Failed to bind socket");
         close(fd);
         return -1;
     }
     if (listen(fd, 5) < 0) {
-        FILE *f = fopen("sdmc:/config/HomeAssistantSwitch/ha_sysmodule_boot.log", "a");
+        FILE *f = fopen("sdmc:/config/NXRemoteAPI/core_boot.log", "a");
         if (f) { fprintf(f, "[ERR] listen failed\n"); fclose(f); }
         LOG_E("Failed to listen on socket");
         close(fd);
         return -1;
     }
 
-    FILE *f = fopen("sdmc:/config/HomeAssistantSwitch/ha_sysmodule_boot.log", "a");
+    FILE *f = fopen("sdmc:/config/NXRemoteAPI/core_boot.log", "a");
     if (f) { fprintf(f, "[OK] Server listening on port %d\n", ConfigManager::getInstance().getPort()); fclose(f); }
     return fd;
 }
@@ -1185,7 +1198,7 @@ int main(int, char **) {
     }
 
     mkdir("sdmc:/config", 0777);
-    mkdir("sdmc:/config/HomeAssistantSwitch", 0777);
+    mkdir("sdmc:/config/NXRemoteAPI", 0777);
 
     // Loaded this early specifically so the "debug" flag (see trace() above) is known
     // before any of the boot-sequence trace() calls below run. The two later
@@ -1215,10 +1228,25 @@ int main(int, char **) {
     // right after, so the process holds that session for milliseconds, not its entire
     // lifetime.
     rc = apmInitialize(); log_boot_status("apm", rc);
-    rc = hiddbgInitialize(); log_boot_status("hiddbg", rc);
 
-    rc = capsscInitialize(); log_boot_status("capssc", rc);
-    if (R_SUCCEEDED(rc)) g_capssc_ready = true;
+    // hiddbg (POST /button) and capssc (GET /screenshot) are both gated behind
+    // config so a client that only wants telemetry/automation - not remote
+    // control/screen capture - doesn't pay their steady-state cost (see AGENTS.md
+    // Rule #6). Both default on (ConfigManager's constructor defaults) so this is
+    // a no-op for anyone who hasn't touched settings.json.
+    if (ConfigManager::getInstance().getEnableInput()) {
+        rc = hiddbgInitialize(); log_boot_status("hiddbg", rc);
+        if (R_SUCCEEDED(rc)) g_hiddbg_ready = true;
+    } else {
+        log_boot_status("hiddbg", 0); // 0 = "skipped by config", not a real Result
+    }
+
+    if (ConfigManager::getInstance().getEnableScreenshot()) {
+        rc = capsscInitialize(); log_boot_status("capssc", rc);
+        if (R_SUCCEEDED(rc)) g_capssc_ready = true;
+    } else {
+        log_boot_status("capssc", 0); // 0 = "skipped by config", not a real Result
+    }
 
     // The bsd socket service is initialized on the main thread before any other
     // thread touches sockets, so nothing else can race ahead of it.
@@ -1242,11 +1270,19 @@ int main(int, char **) {
     // send buffer before the next one needs it. There's plenty of unused heap between
     // that minimal sizing and the 2MB ceiling to grow into.
     trace("before socketInitialize");
+    // Doubled from the original 0x2000/0x8000 minimums now that core no longer
+    // links curl/mbedtls/zlib (see the note on LIBS in Makefile) and this whole
+    // sysmodule still runs comfortably inside its 2MB heap - see mallinfo()'s
+    // heap_arena/heap_used in GET /info to confirm actual headroom on real
+    // hardware before growing this further. NOT yet validated on a physical
+    // console - if socketInitialize starts failing with LibnxError_OutOfMemory
+    // (0x559) after this change, that's this value being too aggressive, revert
+    // toward the original 0x2000/0x8000.
     SocketInitConfig sock_cfg = {
-        .tcp_tx_buf_size = 0x2000,
-        .tcp_rx_buf_size = 0x2000,
-        .tcp_tx_buf_max_size = 0x8000,
-        .tcp_rx_buf_max_size = 0x8000,
+        .tcp_tx_buf_size = 0x4000,
+        .tcp_rx_buf_size = 0x4000,
+        .tcp_tx_buf_max_size = 0x10000,
+        .tcp_rx_buf_max_size = 0x10000,
         .udp_tx_buf_size = 0x800,
         .udp_rx_buf_size = 0x800,
         .sb_efficiency = 1,
@@ -1256,7 +1292,7 @@ int main(int, char **) {
 
     rc = socketInitialize(&sock_cfg);
     if (R_FAILED(rc)) {
-        FILE *f = fopen("sdmc:/config/HomeAssistantSwitch/ha_sysmodule_boot.log", "a");
+        FILE *f = fopen("sdmc:/config/NXRemoteAPI/core_boot.log", "a");
         if (f) { fprintf(f, "[ERR] socketInitialize failed: 0x%08X\n", rc); fclose(f); }
         LOG_E("Failed to initialize sockets");
         return 1;
@@ -1274,7 +1310,7 @@ int main(int, char **) {
 
     g_logger.init();
     trace("after logger init");
-    LOG_I("Home Assistant Sysmodule started (v" APP_VERSION ")");
+    LOG_I("NXRemoteAPI core started (v" APP_VERSION ")");
     trace("after LOG_I");
 
     // Heartbeat log for physical Switch troubleshooting
@@ -1283,7 +1319,7 @@ int main(int, char **) {
 
     ConfigManager::getInstance().load();
     trace("after config load 2");
-    FILE *fb = fopen("sdmc:/config/HomeAssistantSwitch/ha_sys_boot.log", "a");
+    FILE *fb = fopen("sdmc:/config/NXRemoteAPI/core_heartbeat.log", "a");
     trace("after fopen heartbeat");
 
     if (fb) {
@@ -1367,11 +1403,11 @@ int main(int, char **) {
     }
 
     // Restarting core (after a redeploy, or after it stops responding) is the
-    // orchestrator's job now (switch_sysmodule_orchestrator/) - it terminates and
+    // orchestrator's job now (firmware/orchestrator/) - it terminates and
     // relaunches this program from outside, which also covers the case this process
     // can no longer handle itself: a broken deploy that can't even reach this code.
     if (g_capssc_ready) capsscExit();
-    hiddbgExit();
+    if (g_hiddbg_ready) hiddbgExit();
     apmExit();
     ncmExit();
     nsExit();

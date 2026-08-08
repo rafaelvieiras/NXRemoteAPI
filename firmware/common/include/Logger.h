@@ -1,9 +1,14 @@
 #pragma once
 
+#ifdef UNIT_TEST
+#include "MockLibnx.h"
+#else
 #include <switch.h>
+#endif
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#include <mutex>
 
 #define MAX_LOG_MESSAGE_LEN 256
 #define MAX_LOG_ENTRIES 50
@@ -20,9 +25,14 @@ typedef struct {
     char timestamp[32];
 } LogEntry;
 
+// Guarded by m_mutex: the HTTP handler thread and the mDNS responder thread (see
+// mdns_responder() in firmware/core/main.cpp) can both log concurrently, and the
+// ring buffer's head/count bookkeeping isn't safe under a concurrent writer +
+// reader without it.
 class Logger {
 public:
     void init() {
+        std::lock_guard<std::mutex> lock(m_mutex);
         m_head = 0;
         m_count = 0;
         m_errorCount = 0;
@@ -30,6 +40,7 @@ public:
     }
 
     void log(LogLevel level, const char* message) {
+        std::lock_guard<std::mutex> lock(m_mutex);
         if (m_count >= 0xFFFFFFF0) return; // Safeguard
 
         LogEntry* entry = &m_logs[m_head];
@@ -55,18 +66,31 @@ public:
         }
     }
 
-    u32 getErrorCount() const { return m_errorCount; }
-    u32 getLogCount() const { return m_count; }
+    u32 getErrorCount() {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        return m_errorCount;
+    }
 
-    const LogEntry* getLog(u32 index) const {
-        if (index >= m_count) return NULL;
+    u32 getLogCount() {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        return m_count;
+    }
+
+    // Copies the entry out under the lock instead of returning a pointer into
+    // m_logs - a returned pointer could be overwritten by a concurrent log() the
+    // instant the lock is released.
+    bool getLog(u32 index, LogEntry* out) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (index >= m_count) return false;
         u32 actual_index = (m_head - m_count + index + MAX_LOG_ENTRIES) % MAX_LOG_ENTRIES;
-        return &m_logs[actual_index];
+        *out = m_logs[actual_index];
+        return true;
     }
 
     static Logger& getInstance();
 
 private:
+    std::mutex m_mutex;
     LogEntry m_logs[MAX_LOG_ENTRIES];
     u32 m_head;
     u32 m_count;

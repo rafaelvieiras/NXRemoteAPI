@@ -1,7 +1,7 @@
 #---------------------------------------------------------------------------------
 .SUFFIXES:
 
-TARGET		:=	homeassistant_orchestrator
+TARGET		:=	nxremoteapi_core
 BUILD		:=	build
 SOURCES		:=	.
 INCLUDES	:=	include
@@ -20,12 +20,17 @@ NM		:=	$(PREFIX)nm
 
 #---------------------------------------------------------------------------------
 DEFINES	:=	-D__SWITCH__
-CFLAGS	:=	-g -Wall -Wextra -O2 -ffunction-sections -fPIE $(ARCH) $(DEFINES) -I$(CURDIR)/../switch_sysmodule/include -isystem $(DEVKITPRO)/libnx/include -isystem $(DEVKITPRO)/portlibs/switch/include
+CFLAGS	:=	-g -Wall -Wextra -O2 -ffunction-sections -fPIE $(ARCH) $(DEFINES) -I$(CURDIR)/../common/include -isystem $(DEVKITPRO)/libnx/include -isystem $(DEVKITPRO)/portlibs/switch/include
 CXXFLAGS:=	$(CFLAGS) -std=c++17 -fno-rtti -fno-exceptions
 LDFLAGS	:=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -pie -Wl,-Map,$(notdir $*.map) -L$(DEVKITPRO)/libnx/lib -L$(DEVKITPRO)/portlibs/switch/lib
 
-# No curl/mbedtls/z here on purpose - the orchestrator never talks to the network
-# beyond loopback health checks and its own tiny control port, unlike core.
+# core never calls into curl/mbedtls/zlib at runtime (verified: no CURL*/curl_*
+# symbol is referenced anywhere in main.cpp - unlike firmware/companion-app, which
+# actually uses libcurl for GitHub release checks/downloads). The static linker
+# already only pulls in .o files a build actually references, so this LIBS line
+# was link-time inert either way (confirmed: identical .nso size with or without
+# these) - dropped for clarity, matching the orchestrator's `-lnx`-only precedent
+# in AGENTS.md Rule #6, not because it was bloating the shipped binary.
 LIBS	:= -lnx
 
 #---------------------------------------------------------------------------------
@@ -36,7 +41,7 @@ $(TARGET).nso: $(TARGET).elf
 	@echo built ... $@
 
 
-$(TARGET).elf: main.cpp ../switch_sysmodule/ConfigManager.cpp
+$(TARGET).elf: main.cpp ../common/ConfigManager.cpp ../common/HttpFraming.cpp
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ $(LIBS) -o $@
 
 clean:

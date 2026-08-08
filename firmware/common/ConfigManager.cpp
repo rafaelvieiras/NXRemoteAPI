@@ -20,7 +20,8 @@ void ConfigManager::init() {
     getInstance().load();
 }
 
-ConfigManager::ConfigManager() : m_port(8275), m_lastUpdateCheck(0), m_debug(false) {
+ConfigManager::ConfigManager() : m_port(8275), m_lastUpdateCheck(0), m_debug(false),
+    m_enableScreenshot(true), m_enableInput(true) {
     memset(m_apiToken, 0, sizeof(m_apiToken));
 }
 
@@ -59,6 +60,10 @@ bool ConfigManager::load() {
             }
         } else if (strstr(line, "\"debug\"")) {
             m_debug = strstr(line, "true") != NULL;
+        } else if (strstr(line, "\"enable_screenshot\"")) {
+            m_enableScreenshot = strstr(line, "true") != NULL;
+        } else if (strstr(line, "\"enable_input\"")) {
+            m_enableInput = strstr(line, "true") != NULL;
         }
     }
     fclose(f);
@@ -84,7 +89,9 @@ bool ConfigManager::save() {
     FILE* f = fopen(m_configPath, "w");
     if (!f) return false;
 
-    fprintf(f, "{\n  \"api_token\": \"%s\",\n  \"port\": %d,\n  \"last_update_check\": %ld,\n  \"debug\": %s\n}\n", m_apiToken, m_port, m_lastUpdateCheck, m_debug ? "true" : "false");
+    fprintf(f, "{\n  \"api_token\": \"%s\",\n  \"port\": %d,\n  \"last_update_check\": %ld,\n  \"debug\": %s,\n  \"enable_screenshot\": %s,\n  \"enable_input\": %s\n}\n",
+        m_apiToken, m_port, m_lastUpdateCheck, m_debug ? "true" : "false",
+        m_enableScreenshot ? "true" : "false", m_enableInput ? "true" : "false");
     fclose(f);
     return true;
 }
@@ -103,6 +110,12 @@ void ConfigManager::setLastUpdateCheck(long timestamp) { m_lastUpdateCheck = tim
 
 bool ConfigManager::getDebug() { return m_debug; }
 void ConfigManager::setDebug(bool debug) { m_debug = debug; }
+
+bool ConfigManager::getEnableScreenshot() { return m_enableScreenshot; }
+void ConfigManager::setEnableScreenshot(bool enable) { m_enableScreenshot = enable; }
+
+bool ConfigManager::getEnableInput() { return m_enableInput; }
+void ConfigManager::setEnableInput(bool enable) { m_enableInput = enable; }
 
 void ConfigManager::generateDefaultConfig() {
     generatePassphrase(m_apiToken, sizeof(m_apiToken));
