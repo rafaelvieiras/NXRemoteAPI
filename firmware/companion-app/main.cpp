@@ -478,7 +478,7 @@ void draw_ui(const std::string& latest_ver, bool checking_update, bool sysmodule
     printf("\x1b[H"); // Home
     // Header (80 chars wide)
     printf("\x1b[44m\x1b[1;37m                                                                                \x1b[0m\r");
-    printf("\x1b[44m\x1b[1;37m          HOME ASSISTANT SWITCH v%-10s                                    \x1b[0m\n", APP_VERSION);
+    printf("\x1b[44m\x1b[1;37m                            NXRemoteAPI v%-10s                            \x1b[0m\n", APP_VERSION);
     printf("\x1b[44m\x1b[1;37m                                                                                \x1b[0m\n");
     
     printf("+------------------------------------+-------------------------------------+\n");

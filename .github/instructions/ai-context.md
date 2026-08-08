@@ -1,8 +1,12 @@
-# AI Context & Instructions for ha-NintentdoSwitchCFW
+# AI Context & Instructions for NXRemoteAPI
+
+See [`AGENTS.md`](../../AGENTS.md) at the repo root first — it's the canonical
+source for architecture, build/test commands, and hard invariants. This file
+only adds Copilot/Antigravity-specific hints for the Home Assistant client.
 
 ## 🧬 Project DNA
-**Repository:** `ha-NintentdoSwitchCFW`
-**Type:** Home Assistant Custom Integration
+**Repository:** `NXRemoteAPI`
+**Type:** Home Assistant Custom Integration (one client of the console's HTTP API)
 **Domain:** `nxremoteapi`
 **Description:** A modern, high-quality Home Assistant integration for Nintendo Switch consoles running Atmosphere Custom Firmware. Monitor your console's health, track current games, and execute system commands directly from your dashboard.
 
@@ -37,7 +41,9 @@
 - **Coverage:** Mock network requests using `aioresponses` or `pytest-httpx`. Never make live API calls in tests.
 
 ## 🚫 Exclusion Rules
-- **NEVER MODIFY:**
-  - `translations/` (unless specifically asked to add a new string)
-  - `hacs.json` (managed via CI/CD or strictly manually)
-  - `.github/workflows/` (CI pipelines are considered stable)
+See `AGENTS.md`'s Rule #5 ("hard invariants") for what's actually frozen in
+this repo. There is no blanket ban on `translations/`, `hacs.json`, or
+`.github/workflows/` — all three have legitimately changed as part of
+sanctioned work (e.g. the domain rename in ADR-0008, the release pipeline in
+ADR-0007). Don't assume a path is off-limits just because it's CI/release
+config; check `AGENTS.md` and the relevant ADR instead.

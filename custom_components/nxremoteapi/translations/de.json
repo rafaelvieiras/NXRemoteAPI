@@ -5,21 +5,21 @@
         "data": {
           "flow_type": "Verbindungstyp"
         },
-        "description": "Wie möchtest du deine Nintendo Switch (NXRemoteAPI) hinzufügen?"
+        "description": "Wie möchtest du deine Nintendo Switch hinzufügen?"
       },
       "discovery": {
         "title": "Suche nach Nintendo Switch",
         "data": {
           "device": "Gefundene Geräte"
         },
-        "description": "Suche im Netzwerk nach Nintendo Switch Konsolen mit installiertem Sysmodule.\n\nStelle sicher, dass deine Switch eingeschaltet ist und die 'Home Assistant Switch' App läuft, falls nichts gefunden wird."
+        "description": "Suche im Netzwerk nach Nintendo Switch Konsolen mit installiertem Sysmodule.\n\nStelle sicher, dass deine Switch eingeschaltet ist und die 'NXRemoteAPI' App läuft, falls nichts gefunden wird."
       },
       "discovery_confirm": {
         "title": "Suche bestätigen",
         "data": {
           "api_token": "API Token"
         },
-        "description": "Gib den API Token für {name} ({host}) ein.\n\nDu findest den Token in der 'Home Assistant Switch' App auf deiner Konsole."
+        "description": "Gib den API Token für {name} ({host}) ein.\n\nDu findest den Token in der 'NXRemoteAPI' App auf deiner Konsole."
       },
       "manual_entry": {
         "title": "Manuelle Verbindung",
@@ -28,7 +28,7 @@
           "api_token": "API Token",
           "name": "Integrations-Name"
         },
-        "description": "Gib die Verbindungsdaten für deine Nintendo Switch ein.\n\nStelle sicher, dass die 'Home Assistant Switch' App auf deiner Konsole geöffnet ist, um IP und Token zu sehen."
+        "description": "Gib die Verbindungsdaten für deine Nintendo Switch ein.\n\nStelle sicher, dass die 'NXRemoteAPI' App auf deiner Konsole geöffnet ist, um IP und Token zu sehen."
       }
     },
     "error": {

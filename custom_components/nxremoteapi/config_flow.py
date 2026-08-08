@@ -242,7 +242,7 @@ class ConfigFlow(ConfigFlowBase, domain=DOMAIN):  # type: ignore[call-arg]
                 }
             ),
             description_placeholders={
-                "token_hint": "Enter the API Token shown in the 'Home Assistant Switch' app on your console."
+                "token_hint": "Enter the API Token shown in the 'NXRemoteAPI' app on your console."
             },
             errors=errors,
         )

@@ -5,21 +5,21 @@
         "data": {
           "flow_type": "Connection Type"
         },
-        "description": "How do you want to add your Nintendo Switch (NXRemoteAPI)?"
+        "description": "How do you want to add your Nintendo Switch?"
       },
       "discovery": {
         "title": "Search for Nintendo Switch",
         "data": {
           "device": "Discovered Devices"
         },
-        "description": "Scanning your network for Nintendo Switch consoles with the sysmodule installed.\n\nMake sure your Switch is turned on and the 'Home Assistant Switch' app is running if discovery fails."
+        "description": "Scanning your network for Nintendo Switch consoles with the sysmodule installed.\n\nMake sure your Switch is turned on and the 'NXRemoteAPI' app is running if discovery fails."
       },
       "discovery_confirm": {
         "title": "Confirm Discovery",
         "data": {
           "api_token": "API Token"
         },
-        "description": "Enter the API Token for {name} ({host}).\n\nYou can find the token in the 'Home Assistant Switch' app on your console."
+        "description": "Enter the API Token for {name} ({host}).\n\nYou can find the token in the 'NXRemoteAPI' app on your console."
       },
       "manual_entry": {
         "title": "Manual Connection",
@@ -28,7 +28,7 @@
           "api_token": "API Token",
           "name": "Integration Name"
         },
-        "description": "Enter the connection details for your Nintendo Switch.\n\nMake sure the 'Home Assistant Switch' app is open on your console to see the IP and Token."
+        "description": "Enter the connection details for your Nintendo Switch.\n\nMake sure the 'NXRemoteAPI' app is open on your console to see the IP and Token."
       }
     },
     "error": {
@@ -122,7 +122,7 @@
     },
     "remote": {
       "remote": {
-        "name": "Remote"
+        "name": "Remote Control"
       }
     }
   }

@@ -25,7 +25,7 @@ def main():
     repo = os.environ.get("REPO", "")
 
     # Determine owner and repo_name dynamically
-    owner = "faserf"
+    owner = "rafaelvieiras"
     repo_name = os.path.basename(os.getcwd())
     if "/" in repo:
         owner, repo_name = repo.split("/", 1)
@@ -52,7 +52,7 @@ def main():
             docs_url = (
                 f"https://github.com/{repo}"
                 if repo
-                else f"https://github.com/faserf/{repo_name}"
+                else f"https://github.com/{owner}/{repo_name}"
             )
 
     # Calculate version via version_manager

@@ -5,8 +5,8 @@ from pathlib import Path
 BASE_DIR = Path(__file__).parent.parent
 COMPONENT_DIR = BASE_DIR / "custom_components" / "nxremoteapi"
 TRANSLATIONS_DIR = COMPONENT_DIR / "translations"
-SWITCH_APP_DIR = BASE_DIR / "firmware" / "companion-app"
-SWITCH_SYSMODULE_DIR = BASE_DIR / "firmware" / "core"
+COMPANION_APP_DIR = BASE_DIR / "firmware" / "companion-app"
+CORE_DIR = BASE_DIR / "firmware" / "core"
 
 
 def get_keys(content, prefix=""):
@@ -95,7 +95,7 @@ def test_switch_hardcoded_strings():
     ui_functions = ["printf", "puts", "snprintf", "consolePrint", "print_header"]
     hardcoded_found = []
 
-    for dir in [SWITCH_APP_DIR, SWITCH_SYSMODULE_DIR]:
+    for dir in [COMPANION_APP_DIR, CORE_DIR]:
         if not dir.exists():
             continue
         for cpp_file in dir.rglob("*.[ch]pp"):
