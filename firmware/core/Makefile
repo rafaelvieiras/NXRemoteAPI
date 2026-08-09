@@ -41,7 +41,7 @@ $(TARGET).nso: $(TARGET).elf
 	@echo built ... $@
 
 
-$(TARGET).elf: main.cpp ../common/ConfigManager.cpp ../common/HttpFraming.cpp
+$(TARGET).elf: main.cpp ../common/ConfigManager.cpp ../common/HttpFraming.cpp ../common/ByteSearch.cpp
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ $(LIBS) -o $@
 
 # main.npdm is committed (see AGENTS.md Rule #3) but reproducible from main.json via

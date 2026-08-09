@@ -81,6 +81,7 @@ extern "C" {
 #include "Logger.h"
 #include "SysmoduleConstants.h"
 #include "HttpFraming.h"
+#include "ByteSearch.h"
 
 Logger g_logger;
 
@@ -117,14 +118,25 @@ void mdns_responder() {
     mreq.imr_interface.s_addr = htonl(INADDR_ANY);
     setsockopt(sd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
 
-    unsigned char buffer[1024];
+    // 1025, not 1024: recvfrom() gives no NUL terminator, so byte [1024] is reserved
+    // as an always-zero sentinel (set below) rather than eating into the 1024 bytes
+    // actually available to a datagram. See issue #1 - this used to be strstr() directly
+    // on the raw recvfrom() buffer, which read past the array on any UDP datagram whose
+    // payload had no 0x00 byte before the 1024-byte mark (ordinary mDNS traffic from any
+    // LAN device can trigger this, not just malicious input).
+    unsigned char buffer[1025];
     while (1) {
         struct sockaddr_in client_addr;
         socklen_t addr_len = sizeof(client_addr);
-        int n = recvfrom(sd, buffer, sizeof(buffer), 0, (struct sockaddr*)&client_addr, &addr_len);
+        int n = recvfrom(sd, buffer, sizeof(buffer) - 1, 0, (struct sockaddr*)&client_addr, &addr_len);
         if (n > 12) {
-            // Check for "_nxremoteapi" label in query
-            if ((buffer[2] & 0x80) == 0 && strstr((char*)buffer + 12, "_nxremoteapi")) {
+            buffer[n] = 0;
+            // Check for "_nxremoteapi" label in query - ByteSearch::Contains() instead
+            // of strstr() so this stays limited to the actual received length even if a
+            // future change removes the explicit NUL terminator above. See issue #1.
+            static const char kMdnsLabel[] = "_nxremoteapi";
+            if ((buffer[2] & 0x80) == 0 &&
+                ByteSearch::Contains(buffer + 12, (size_t)n - 12, kMdnsLabel, sizeof(kMdnsLabel) - 1)) {
                 u32 ip = 0; nifmGetCurrentIpAddress(&ip);
                 unsigned char response[] = {
                     0x00, 0x00, 0x84, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
