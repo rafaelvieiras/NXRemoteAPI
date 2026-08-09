@@ -265,6 +265,11 @@ static void uninstall_album_launcher_override() {
 // firmware/companion-app/main.cpp) before giving up and restoring the real Album regardless.
 #define ALBUM_LAUNCHER_TIMEOUT_SEC 20
 
+// Total wall-clock budget for the body-wait loop in handle_client() below, on top
+// of the existing per-recv_timeout() 2s window - see the comment above that loop
+// for why a per-call timeout alone isn't enough.
+#define BODY_READ_TOTAL_TIMEOUT_SEC 10
+
 // Tracked in-process (single-threaded server, no locking needed) so a pending
 // Album-override launch can be finished opportunistically by whatever request happens
 // to come in next - see poll_album_launcher_completion() below for why this can't just
@@ -466,13 +471,31 @@ void handle_client(int client_sock) {
     // HttpFraming::HasCompleteBody() (unit-tested in firmware/common/tests, see
     // AGENTS.md Rule #4) says the full Content-Length worth of body has arrived, or
     // we run out of buffer/time.
+    //
+    // recv_timeout()'s 2s window only bounds a single call - it does nothing to stop
+    // a client that keeps trickling in ~1 byte per call, always staying just inside
+    // that window. Left unbounded, that kept this loop (and this single-threaded
+    // server - ADR-0003) alive for up to sizeof(buffer) iterations x 2s, over an hour
+    // in practice (see docs/known-issues.md and #9: this was observed hanging core in
+    // production with no crash report at all, not just a theoretical concern). Track
+    // wall-clock time since the loop started and give up regardless of individual
+    // recv_timeout() results once BODY_READ_TOTAL_TIMEOUT_SEC has elapsed.
     {
         char msg[128];
         snprintf(msg, sizeof(msg), "body-wait: initial bytes_read=%d complete=%d",
                  bytes_read, HttpFraming::HasCompleteBody(buffer, bytes_read));
         LOG_I(msg);
     }
+    u64 body_wait_start_tick = svcGetSystemTick();
     while (!HttpFraming::HasCompleteBody(buffer, bytes_read) && bytes_read < (int)(sizeof(buffer) - 1)) {
+        u64 body_wait_elapsed_ticks = svcGetSystemTick() - body_wait_start_tick;
+        if (body_wait_elapsed_ticks > (u64)BODY_READ_TOTAL_TIMEOUT_SEC * armGetSystemTickFreq()) {
+            LOG_I("body-wait: total deadline exceeded, dropping connection");
+            const char *resp = "HTTP/1.1 408 Request Timeout\r\nConnection: close\r\nContent-Type: application/json\r\n\r\n{\"error\": \"Request body timeout\"}";
+            send_timeout(client_sock, resp, strlen(resp));
+            close(client_sock);
+            return;
+        }
         int more = recv_timeout(client_sock, buffer + bytes_read, sizeof(buffer) - 1 - bytes_read, 2);
         {
             char msg[64];
