@@ -7,6 +7,52 @@ even characterize, let alone root-cause. Read this before treating a fresh `omm`
 crash or a slow boot as caused by whatever you just deployed — it might not be.
 Tracked on the issue tracker as [#34](https://github.com/rafaelvieiras/NXRemoteAPI/issues/34) — update both when new evidence comes in.
 
+## System-level fatal errors (`nn.am.WindowSystem`, `nn.olsc.EventHandler`), likely unrelated to this project
+
+**Status: open, evidence points away from this project entirely - stock Horizon
+services crashing, not anything under `firmware/`. Tracked as
+[#35](https://github.com/rafaelvieiras/NXRemoteAPI/issues/35).**
+
+Separate from every other section in this file: `atmosphere/erpt_reports/`
+(official Nintendo error-report telemetry, distinct from `crash_reports/`,
+which only captures per-process aborts like `omm`'s) recorded a cluster of
+**genuine system fatal errors** - the actual black-screen/QR-code error screen,
+not anything this project's code path touches - during the same 2026-08-08/09
+session covered elsewhere in this file:
+
+- `2521-0521` at 22:13, `ThreadName: nn.am.WindowSystem` - **Applet Manager's
+  window/UI system** crashing. This is exactly the kind of crash that presents
+  as a full system freeze/black screen to a user, since `am` underlies the
+  entire Home Menu/app-switching UI - a far better explanation for a
+  user-reported "freeze requiring a reboot" than anything in this project.
+- `2123-0011` at 21:54, 22:18, and 00:02, `ThreadName: nn.olsc.EventHandler` -
+  the **cloud save-sync service** crashing repeatedly.
+- `2162-0004` (generic system fatal, no `ThreadName` field in this report
+  category) at 21:34, 22:17, 22:32, and 00:15 - the last one lines up almost
+  exactly with the freeze-and-manual-reboot the user reported.
+- Cross-referencing timestamps with `orchestrator_boot.log`'s own timestamped
+  entries (see previous sections) - the orchestrator's `terminate_core()` wait
+  stalled for **~79 real minutes** (`[TERM] TerminateProgram` at an elapsed-tick
+  matching ~22:43, `[TERM] timed out waiting for exit event` only appearing
+  ~79 minutes later, matching ~00:02) almost exactly bracketed by the 22:32 and
+  00:02 fatals above. That's `eventWait()` - a kernel primitive with an
+  explicit 200ms-per-slice timeout in our code - not returning for ~79 real
+  minutes, which only makes sense if something well below our code (kernel
+  scheduling, IPC, or the whole console) was genuinely stuck system-wide during
+  that window, not just `core` or `orchestrator`.
+
+None of the crashing threads (`nn.am.WindowSystem`, `nn.olsc.EventHandler`)
+belong to this project - `atmosphere/fatal_errors/` (where Atmosphère logs
+fatals it specifically intercepts) is empty, suggesting these are stock
+Horizon-side fatals Atmosphère isn't specially handling, not something our
+sysmodules triggered directly. Best-effort reading: this looks like real,
+pre-existing instability in this console's OS/hardware, independent of
+`core`/`orchestrator` - though running two extra always-on background
+sysmodules for months can't be fully ruled out as a contributing factor
+(resource/handle pressure) without more data. Not confirmed either way -
+record any further `erpt_reports` entries here (`ErrorCode`, `ThreadName`,
+timestamp) alongside whatever else was going on at the time.
+
 ## `omm` crashes (Result 0x2A5, User Break) recurring independent of any deploy
 
 **Status: open, not root-caused. Evidence so far points away from "caused by our
