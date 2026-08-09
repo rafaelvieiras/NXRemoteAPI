@@ -5,6 +5,7 @@ not frozen once "accepted". It exists because some issues here manifest only on
 real hardware, intermittently, and take multiple incidents spread over time to
 even characterize, let alone root-cause. Read this before treating a fresh `omm`
 crash or a slow boot as caused by whatever you just deployed — it might not be.
+Tracked on the issue tracker as [#34](https://github.com/rafaelvieiras/NXRemoteAPI/issues/34) — update both when new evidence comes in.
 
 ## `omm` crashes (Result 0x2A5, User Break) recurring independent of any deploy
 
