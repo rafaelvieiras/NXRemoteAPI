@@ -12,9 +12,12 @@ firmware/companion-app/build/
 firmware/core/build/
 firmware/orchestrator/build/
 switch_build_out/
-# Renamed NSO used only as an intermediate for local PFS0/exefs.nsp packaging
-firmware/core/main
-firmware/orchestrator/main
+# Staging dir for PFS0/exefs.nsp packaging (see firmware/{core,orchestrator}/Makefile
+# `exefs.nsp` target and scripts/build-firmware.sh) - always deleted after packing,
+# ignored here only as a safety net.
+pfs0_staging/
+# scripts/build-firmware.sh --dist output (SD-card-ready tree, never committed)
+dist/
 
 # Compiled host-native test binaries (firmware/common/tests) - build them, don't commit them
 firmware/common/tests/run_tests

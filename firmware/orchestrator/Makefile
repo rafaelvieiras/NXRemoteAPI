@@ -39,6 +39,25 @@ $(TARGET).nso: $(TARGET).elf
 $(TARGET).elf: main.cpp ../common/ConfigManager.cpp
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ $(LIBS) -o $@
 
+# main.npdm is committed (see AGENTS.md Rule #3) but reproducible from main.json via
+# this rule - regenerate it if main.json ever changes (program ID, permissions, etc).
+main.npdm: main.json
+	$(DEVKITPRO)/tools/bin/npdmtool $< $@
+	@echo built ... $@
+
+# Same packaging requirement as firmware/core - see the comment there and ADR-0009.
+# boot2.flag (in flags/, not packed here) is what actually makes Atmosphère launch
+# this from boot2, not the exefs.nsp itself.
+exefs.nsp: $(TARGET).nso main.npdm
+	@rm -rf pfs0_staging && mkdir -p pfs0_staging
+	@cp $(TARGET).nso pfs0_staging/main
+	@cp main.npdm pfs0_staging/main.npdm
+	$(DEVKITPRO)/tools/bin/build_pfs0 pfs0_staging exefs.nsp
+	@rm -rf pfs0_staging
+	@echo built ... exefs.nsp
+
+pack: exefs.nsp
+
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).nro $(TARGET).nso $(TARGET).nsp $(TARGET).map
+	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).nro $(TARGET).nso $(TARGET).nsp exefs.nsp pfs0_staging $(TARGET).map

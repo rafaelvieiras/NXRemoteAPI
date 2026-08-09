@@ -67,15 +67,32 @@ on-hardware debugging.
 
 ### 1. On the console
 
-1. Download `main`, `main.npdm`, `boot2.flag`, and `nxremoteapi.nro` from the
-   [Releases page](https://github.com/rafaelvieiras/NXRemoteAPI/releases).
-2. On the SD card, create `/atmosphere/contents/010000000000CAFE/exefs/` and
-   `/atmosphere/contents/010000000000CAFE/flags/`.
-3. Copy `main` and `main.npdm` into `exefs/`, and `boot2.flag` into `flags/` (without
-   it, the service won't be launched at boot).
-4. Copy `nxremoteapi.nro` to `/switch/nxremoteapi.nro`.
-5. Reboot. Launch the `.nro` from the Homebrew Menu once to see the console's IP,
-   port, and generated API token.
+`core` (the always-on API) and `orchestrator` (its boot2 supervisor — see
+[`docs/architecture.md`](docs/architecture.md)) are two separate sysmodules, each
+needing its own content folder. Build both with `scripts/build-firmware.sh --dist`
+(Docker only, see [`AGENTS.md`](AGENTS.md) Rule #3) — it produces a `dist/` tree
+laid out exactly like the SD card, ready to copy over:
+
+1. Run `scripts/build-firmware.sh --dist`.
+2. Copy `dist/atmosphere/` and `dist/switch/` onto the SD card root, merging with
+   what's already there.
+3. Reboot. Launch `nxremoteapi.nro` from the Homebrew Menu once to see the
+   console's IP, port, and generated API token.
+
+> **Note:** GitHub Releases currently only attach the Home Assistant integration
+> zip, not prebuilt firmware — `scripts/build-firmware.sh` is the only way to get
+> the console-side files today. If that changes later, the layout below is what
+> must land on the SD card either way; each program ID gets its **packed**
+> `exefs.nsp` directly under `/atmosphere/contents/<id>/` — **not** a loose
+> `exefs/main` + `exefs/main.npdm` directory. That layout is valid Atmosphère
+> syntax in general but confirmed not to load on real hardware for this project
+> (see [ADR-0009](docs/adr/0009-packaged-exefs-nsp-and-dockerized-firmware-build.md)):
+
+- `/atmosphere/contents/010000000000CAFE/exefs.nsp` (`core`)
+- `/atmosphere/contents/010000000000CAF0/exefs.nsp` (`orchestrator`)
+- `/atmosphere/contents/010000000000CAF0/flags/boot2.flag` (empty/marker file —
+  without it, the orchestrator won't be launched at boot, and `core` never starts)
+- `/switch/nxremoteapi.nro`
 
 The service (`core`) has no UI of its own by design — it's a background process, not
 an app; the `.nro` exists only to surface the connection details and let you configure

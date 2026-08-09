@@ -33,19 +33,33 @@ cross-language build — don't try to invent one.
 
 ## Rule #3 — Building and testing
 
-- **Firmware (cross-compiled, requires devkitPro/devkitA64 + libnx)**: `make` inside
-  each of `firmware/core/`, `firmware/orchestrator/`, `firmware/companion-app/`
-  (the latter also has a `launcher` target). CI builds these via the
-  `devkitpro/devkita64` Docker image — see `.github/workflows/sysmodule_validation.yml`
-  for the exact invocation if you don't have the toolchain installed locally.
+- **Firmware, one command, Docker only, no local devkitPro/libnx install**:
+  `scripts/build-firmware.sh` (add `--dist` to also assemble an SD-card-ready tree
+  under `dist/`). It cross-compiles and packages `core`, `orchestrator`,
+  `companion-app` (+ its experimental `launcher` build), and runs the
+  `firmware/common` host test suite, all via the same `devkitpro/devkita64` Docker
+  image CI uses. This is the only supported/documented path — don't install
+  devkitA64 locally, don't hand-roll the docker invocations, use the script.
+- **Manual equivalent per component** (what the script actually runs, useful if you
+  only need one piece): `docker run --rm -v "$PWD":/app -w /app devkitpro/devkita64
+  make -C firmware/<core|orchestrator> pack` produces `exefs.nsp` (the only format
+  Atmosphère actually loads for this install — see Rule #5 and
+  [ADR-0009](docs/adr/0009-packaged-exefs-nsp-and-dockerized-firmware-build.md)).
+  Plain `make` (no `pack`) in any of the three just produces the `.nso`/`.nro` for
+  a quick compile-check, same as `.github/workflows/sysmodule_validation.yml`.
 - **Host-native tests (no devkitA64 needed)**: `make -C firmware/common/tests`. This
   compiles the subset of shared code that's genuinely platform-independent against
   `MockLibnx.h` (see Rule #4) using the host's own `g++`/`clang++`, with Catch2 v2
   (`catch.hpp`, vendored single-header). Run the sanitizer variant before touching
   anything in `firmware/common/` — `make -C firmware/common/tests asan` /
   `... ubsan` (add the target if it isn't there yet).
-- **Home Assistant integration**: standard Python — `pytest tests/`, `ruff`, `mypy`
-  per `pyproject.toml`/`mypy.ini`.
+- **Home Assistant integration**: standard Python via `uv`, Docker only, no local
+  Python/venv install needed — `docker run --rm -v "$PWD":/app -w /app -e
+  PYTHONPATH=. ghcr.io/astral-sh/uv:debian sh -c "uv sync --extra test && uv run
+  pytest tests/"`. Same image for `ruff`/`mypy` (`uvx ruff check ...`, `uv run
+  --with mypy mypy custom_components/nxremoteapi`). Mount a named Docker volume at
+  `/root/.cache/uv` across runs to avoid re-downloading the interpreter/deps every
+  time.
 
 ## Rule #4 — The `UNIT_TEST` pattern for host-testable firmware code
 
@@ -83,6 +97,15 @@ comments in the source before "fixing" them:
   0x2A5, User Break). It's only opened tightly around the few actions that genuinely
   need an applet session (`launch_app`, `/sleep`), then closed immediately. `apm` is
   used instead for anything that doesn't strictly need it (e.g. dock-state queries).
+- **`core` and `orchestrator` must be deployed as a packed `exefs.nsp`, never the
+  loose `exefs/main`+`exefs/main.npdm` directory layout** (see
+  [ADR-0009](docs/adr/0009-packaged-exefs-nsp-and-dockerized-firmware-build.md)).
+  Both are valid Atmosphère conventions in general, but the loose layout was
+  tested live on the real console (2026-08-08/09) and Atmosphère silently failed
+  to load either sysmodule from it (no boot log, no HTTP response) — had to be
+  reverted from backup. Always build with `make pack` (or
+  `scripts/build-firmware.sh`), never plain `make`, before copying anything to an
+  SD card.
 - **Program IDs are load-bearing and out of scope for renaming**:
   `SYSMODULE_PROGRAM_ID`, `ORCHESTRATOR_PROGRAM_ID`, `ALBUM_OVERRIDE_PROGRAM_ID` in
   `firmware/common/include/SysmoduleConstants.h`. Changing any of these means every
