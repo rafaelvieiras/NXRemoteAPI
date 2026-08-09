@@ -106,6 +106,10 @@ comments in the source before "fixing" them:
   reverted from backup. Always build with `make pack` (or
   `scripts/build-firmware.sh`), never plain `make`, before copying anything to an
   SD card.
+- **`omm` crashes (Result 0x2A5) and slow/rocky boots can happen on this console
+  independent of any deploy** — see [`docs/known-issues.md`](docs/known-issues.md)
+  for the ongoing incident log before assuming a fresh crash was caused by
+  whatever you just changed.
 - **Program IDs are load-bearing and out of scope for renaming**:
   `SYSMODULE_PROGRAM_ID`, `ORCHESTRATOR_PROGRAM_ID`, `ALBUM_OVERRIDE_PROGRAM_ID` in
   `firmware/common/include/SysmoduleConstants.h`. Changing any of these means every
