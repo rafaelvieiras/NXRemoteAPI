@@ -25,10 +25,21 @@ session covered elsewhere in this file:
   as a full system freeze/black screen to a user, since `am` underlies the
   entire Home Menu/app-switching UI - a far better explanation for a
   user-reported "freeze requiring a reboot" than anything in this project.
-- `2123-0011` at 21:54, 22:18, and 00:02, `ThreadName: nn.olsc.EventHandler` -
-  the **cloud save-sync service** crashing repeatedly.
+- `2123-0011` at 21:54, 22:18, 00:02, and again on 2026-08-09 at 01:04 -
+  `ThreadName: nn.olsc.EventHandler`, the **cloud save-sync service** crashing
+  repeatedly. The 01:04 occurrence caused a spontaneous reboot right after the
+  [#1](https://github.com/rafaelvieiras/NXRemoteAPI/issues/1) fix was uploaded
+  (a live `core` exefs.nsp swap, same as the incidents in the next section) -
+  another data point for that section's "does a live swap trigger anything"
+  question, this time with a **different** crash class than `omm`: no
+  `omm` crash report appeared at all around this reboot (`crash_reports/`
+  unchanged since 2026-08-08 21:33), only this same pre-existing
+  `nn.olsc.EventHandler` fatal - consistent with "unrelated to this project"
+  reading below, and further separating the two crash classes.
 - `2162-0004` (generic system fatal, no `ThreadName` field in this report
-  category) at 21:34, 22:17, 22:32, and 00:15 - the last one lines up almost
+  category) at 21:34, 22:17, 22:32, 00:15, and 01:17 on 2026-08-09 (the second
+  of the pair alongside the 01:04 `nn.olsc.EventHandler` fatal above,
+  presumably the same underlying stall's tail end) - the earlier 00:15 one lines up almost
   exactly with the freeze-and-manual-reboot the user reported.
 - Cross-referencing timestamps with `orchestrator_boot.log`'s own timestamped
   entries (see previous sections) - the orchestrator's `terminate_core()` wait
