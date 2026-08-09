@@ -58,6 +58,43 @@ detail on future occurrences — update this entry when that data comes in, and
 keep recording every occurrence here (date, what preceded the reboot, boot
 duration, cold vs. warm) rather than reading too much into any single incident.
 
+## `core` going unreachable mid-runtime (not just at boot), no crash report at all
+
+**Status: open, but with a concrete working hypothesis this time — likely
+explained by the already-filed [#9](https://github.com/rafaelvieiras/NXRemoteAPI/issues/9)
+("HTTP body-read loop has no total deadline, letting a slow client starve the
+single-threaded server").**
+
+Distinct from both sections above: this is `core` going unreachable *after*
+having booted cleanly and served traffic successfully for a while, not during
+startup, and with **no crash report generated at all** (neither `omm` nor
+anything under `core`'s own program ID) — consistent with a hang, not a crash.
+
+- **2026-08-08/09, boot session `[27]`** (the boot right after the corrected
+  `exefs.nsp` redeploy — see previous section, incident #3): `core` answered
+  `/info` normally for the first ~18 minutes (manually confirmed working at
+  `uptime: 75s`, and HA's coordinator kept polling successfully). Then, per
+  `orchestrator_boot.log`: at `[1110]`s (~18.5 min) `core` went unreachable, hit
+  3 consecutive health-check failures by `[1141]`s (~19 min), got terminated
+  (`pm:shell` exit-event wait timed out, cleaned up anyway) and relaunched as a
+  new pid. Two more isolated, non-escalating health-check misses followed
+  around the `[1216]`-`[1231]`s and `[2401]`-`[2506]`s marks (~20 min and ~40-42
+  min) before a physical reboot ended that session. No crash report exists for
+  any of this — `core` simply stopped responding to the orchestrator's loopback
+  health check.
+
+A hang with no crash report is exactly what a single-threaded, blocking
+`accept()`/`handle_client()` loop (see `AGENTS.md` Rule #5 and #9's own
+description) would produce if some client's request never completed a full
+`Content-Length` body — the whole server blocks forever on that one connection,
+answering nothing else, including the orchestrator's own health-check
+connection. This doesn't yet identify *which* client/request triggered it (HA's
+coordinator, the companion app, or something else polling), but the timing
+(spontaneous, mid-session, no crash) fits #9 far better than it fits the `omm`
+crash pattern above. Treat this as supporting real-world evidence for #9 rather
+than a new, separate mystery - if #9 gets fixed (a total read deadline), check
+whether this specific symptom (long unexplained `core` hangs) stops recurring.
+
 ## Orchestrator sometimes needs multiple relaunch cycles to stabilize `core` on boot
 
 **Status: open, not root-caused. Possibly related to the `omm` instability above,
@@ -86,3 +123,12 @@ timestamps and whether the boot was cold (power off) vs. warm (Hekate reboot).
   and the one immediately following a crash. Doesn't fit a simple "slow boot ⇒
   rocky orchestrator startup" story either — the two roughest boot sequences
   (pid `8A`→`8B`→`8C`) happened on the *other* two incidents, not this one.
+- **A later reboot the same day, boot session `[28]`** — rocky again: `core`
+  (first pid) hit 3 consecutive health-check failures by `[79]`s, got
+  terminated and relaunched (second pid), then took two more isolated misses
+  (`[92]`s, `[107]`s: `(1/3)`, `(2/3)`) before finally answering `/info`
+  successfully at `uptime: 152s`. No `omm` crash this time at all — this
+  session's instability is boot-time-only and resolved on its own via the
+  orchestrator's relaunch, same mechanism [architecture.md](../architecture.md)
+  describes it existing for. Reinforces that boot-time instability and the
+  `omm` crash are likely two separate phenomena that don't always co-occur.
