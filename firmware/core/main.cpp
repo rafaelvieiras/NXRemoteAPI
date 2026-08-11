@@ -82,6 +82,7 @@ extern "C" {
 #include "SysmoduleConstants.h"
 #include "HttpFraming.h"
 #include "ByteSearch.h"
+#include "JsonSafeAccess.h"
 
 Logger g_logger;
 
@@ -310,7 +311,12 @@ static void poll_album_launcher_completion() {
         fclose(sf);
         json st = json::parse(buf, nullptr, false);
         if (!st.is_discarded()) {
-            std::string state = st.value("state", "");
+            // launch_status.json is written by firmware/companion-app, not a network
+            // client - but a torn write (eg. companion-app killed mid-fwrite) can still
+            // leave behind valid-but-unexpected JSON (not an object, or "state" present
+            // with the wrong type), which a plain .value() call would abort on just the
+            // same as the client-controlled cases fixed for issue #2.
+            std::string state = JsonSafeAccess::GetString(st, "state", "");
             if (state == "launched" || state == "error") done = true;
         }
     }
@@ -865,7 +871,12 @@ void handle_client(int client_sock) {
             body += 4;
             json j = json::parse(body, nullptr, false);
             if (!j.is_discarded() && j.contains("action")) {
-                std::string action = j.value("action", "");
+                // See issue #2: a plain j.value("action", "") aborts the whole process
+                // (JSON_THROW -> std::abort() under -fno-exceptions) if "action" exists
+                // but isn't a string (eg. {"action": 123}) - a single authenticated
+                // request was enough for a trivial remote DoS. JsonSafeAccess::GetString
+                // falls back to the default instead, same as a missing key would.
+                std::string action = JsonSafeAccess::GetString(j, "action", "");
                 Result rc = 0;
                 if (action == "reboot") {
                     // See the note near POST /reboot below for why this is spsm, not bpc.
@@ -877,7 +888,7 @@ void handle_client(int client_sock) {
                     spsmShutdown(false);
                     spsmExit();
                 } else if (action == "launch_app" && j.contains("title_id")) {
-                    std::string tid_str = j.value("title_id", "");
+                    std::string tid_str = JsonSafeAccess::GetString(j, "title_id", "");
                     u64 tid = strtoull(tid_str.c_str(), NULL, 16);
                     // appletRequestLaunchApplication() (used here previously) asks am to
                     // launch on behalf of the CALLING application applet session - same
@@ -1044,8 +1055,14 @@ void handle_client(int client_sock) {
                 json req = json::parse(body, nullptr, false);
                 if (!req.is_discarded() && req.contains("sequence") && req["sequence"].is_array()) {
                     for (auto& step : req["sequence"]) {
-                        std::string btn_name = step.value("button", "");
-                        int duration = step.value("duration_ms", 100);
+                        // See issue #2: step.value(...) aborted the whole process both
+                        // when `step` itself isn't an object at all (eg. a plain string
+                        // in the sequence array) and when a key exists with the wrong
+                        // type (eg. duration_ms as a string). JsonSafeAccess falls back
+                        // to the default in both cases instead of calling into
+                        // nlohmann's throwing get<T>() path.
+                        std::string btn_name = JsonSafeAccess::GetString(step, "button", "");
+                        int duration = JsonSafeAccess::GetInt(step, "duration_ms", 100);
                         u64 btn_bit = 0;
                         if (btn_name == "A") btn_bit = HidNpadButton_A;
                         else if (btn_name == "B") btn_bit = HidNpadButton_B;
