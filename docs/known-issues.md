@@ -115,6 +115,18 @@ detail on future occurrences — update this entry when that data comes in, and
 keep recording every occurrence here (date, what preceded the reboot, boot
 duration, cold vs. warm) rather than reading too much into any single incident.
 
+- **2026-08-10, ~22:02** — occurred again on the reboot that loaded the
+  [#2](https://github.com/rafaelvieiras/NXRemoteAPI/issues/2) fix (`core`'s
+  `exefs.nsp` swapped right before reboot, same live-file-swap pattern as
+  incidents #1/#3 above). Same exact signature (`Process Name: omm`,
+  `Program ID: 0100000000000045`, `Result: 0x2A5`, User Break). `core` itself
+  came back up clean and was immediately hammered with the three malicious
+  JSON payloads from #2's repro steps (`{"action": 123}`, `{"sequence": ["A",
+  "B"]}`, `{"sequence": [{"button": "A", "duration_ms": "100"}]}`) with no
+  abort and uptime climbing normally throughout - ruling out the #2 fix itself,
+  or any of this testing, as the cause. Fourth data point for the file-swap
+  hypothesis (now 3 of 4 incidents had a file change right before reboot).
+
 ## `core` going unreachable mid-runtime (not just at boot), no crash report at all
 
 **Status: open, but with a concrete working hypothesis this time — likely
